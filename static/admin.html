@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>북웨이브 스튜디오 (bookwave studio)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/studio.css">
+  <!-- EPUB.js for preview -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+</head>
+<body class="studio-body" data-theme="dark">
+
+  <!-- Admin Access Security Gate (보안 락 화면) -->
+  <div class="studio-gate-overlay" id="adminSecurityGate" style="display: flex;">
+    <div class="studio-gate-box">
+      <div class="gate-lock-icon">🔒</div>
+      <h2 class="gate-brand-title">스튜디오 보안 접속</h2>
+      <p class="gate-brand-desc">
+        인가된 권한을 확인합니다. 접속 암호를 입력해 주세요.
+      </p>
+
+      <form id="adminAuthForm" onsubmit="return false;">
+        <div class="gate-form-group">
+          <label style="font-size: 0.76rem; font-weight: 700; color: var(--studio-text-muted); display: block; margin-bottom: 6px;">
+            접속 암호
+          </label>
+          <input type="password" id="inputAdminPassword" placeholder="접속 암호 입력" class="studio-input" style="width: 100%; box-sizing: border-box;" required autocomplete="current-password">
+        </div>
+
+        <div id="adminAuthError" class="gate-error-message"></div>
+
+        <button type="submit" class="gate-submit-btn" id="btnAdminAuthSubmit" style="margin-top: 10px;">
+          <span>스튜디오 접속하기</span>
+          <span>▶</span>
+        </button>
+      </form>
+
+      <div class="gate-back-link">
+        <a href="/">← 사용자 서재로 돌아가기</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Studio Main App Layout -->
+  <div class="studio-layout">
+
+    <!-- Fixed Left Sidebar -->
+    <aside class="studio-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-badge">🌊</div>
+        <div class="brand-text">
+          <h2>북웨이브</h2>
+          <span>STUDIO</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Management</div>
+
+        <div class="nav-item active" data-view="dashboard" id="navDashboard">
+          <span class="nav-icon">📊</span>
+          <span>대시보드</span>
+        </div>
+
+        <div class="nav-item" data-view="content" id="navContent">
+          <span class="nav-icon">📚</span>
+          <span>콘텐츠 관리</span>
+          <span class="nav-badge" id="sidebarBadgeContent">0</span>
+        </div>
+
+        <div class="nav-item" data-view="users" id="navUsers">
+          <span class="nav-icon">👥</span>
+          <span>회원 계정 관리</span>
+          <span class="nav-badge" id="sidebarBadgeUsers">0</span>
+        </div>
+
+        <div class="nav-item" data-view="ads" id="navAds">
+          <span class="nav-icon">📢</span>
+          <span>광고 관리</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="/" class="sidebar-action-btn" title="일반 사용자 서재로 이동">
+          <span>📖</span>
+          <span>사용자 서재 보기</span>
+        </a>
+
+        <button class="sidebar-action-btn" id="btnSidebarChangeMasterPw" title="스튜디오 비번 변경">
+          <span>🔑</span>
+          <span>스튜디오 비번 변경</span>
+        </button>
+
+        <button class="sidebar-action-btn" id="btnAdminLogout" title="스튜디오 잠그기">
+          <span>🔒</span>
+          <span>스튜디오 잠그기</span>
+        </button>
+
+        <div class="server-status-pill">
+          <span class="status-dot"></span>
+          <span>서버 정상 가동중</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="studio-workspace">
+
+      <!-- Topbar -->
+      <header class="studio-topbar">
+        <div class="topbar-breadcrumb">
+          <span class="breadcrumb-root">스튜디오</span>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current" id="topbarCurrentTitle">대시보드</span>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="btn-pill btn-pill-ghost" id="btnOpenChangeMasterPw" title="스튜디오 접속 암호 변경" style="cursor: pointer;">
+            <span>🔑</span>
+            <span>스튜디오 비번 변경</span>
+          </button>
+          <a href="/" class="btn-pill btn-pill-ghost">
+            <span>📖</span>
+            <span>사용자 서재</span>
+          </a>
+          <button class="btn-pill btn-pill-primary" id="btnTopAction">
+            <span>➕</span>
+            <span>새 콘텐츠 등록</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Body with Dynamic Views -->
+      <div class="studio-content-body">
+
+        <!-- ==========================================
+             VIEW 1: DASHBOARD
+             ========================================== -->
+        <section id="viewDashboard" class="studio-view active">
+          <div class="view-header">
+            <h2>대시보드 요약</h2>
+            <p>북웨이브의 도서 콘텐츠와 등록 회원 현황을 한눈에 파악합니다.</p>
+          </div>
+
+          <!-- Linear-style Metric Cards Grid -->
+          <div class="metrics-grid">
+            <div class="glass-card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">등록된 전자책</span>
+                <div class="metric-icon-wrap icon-emerald">📚</div>
+              </div>
+              <div class="metric-value" id="statEbooks">0권</div>
+              <div class="metric-sub">Word (.docx) 전용</div>
+            </div>
+
+            <div class="glass-card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">등록된 오디오북</span>
+                <div class="metric-icon-wrap icon-cyan">🎧</div>
+              </div>
+              <div class="metric-value" id="statAudiobooks">0개</div>
+              <div class="metric-sub">모든 고음질 오디오 지원</div>
+            </div>
+
+            <div class="glass-card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">디스크 사용량</span>
+                <div class="metric-icon-wrap icon-purple">💾</div>
+              </div>
+              <div class="metric-value" id="statStorage">0 MB</div>
+              <div class="metric-sub">로컬 라이브러리 저장공간</div>
+            </div>
+
+            <div class="glass-card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">등록된 회원 수</span>
+                <div class="metric-icon-wrap icon-orange">👥</div>
+              </div>
+              <div class="metric-value" id="statUsers">0명</div>
+              <div class="metric-sub">접속 인가된 활성 계정</div>
+            </div>
+          </div>
+
+          <!-- Quick Action Cards -->
+          <div class="quick-action-grid">
+            <div class="glass-card quick-action-card" id="cardQuickUpload">
+              <div class="action-icon-box">📤</div>
+              <div class="action-details">
+                <h3>새 도서 및 오디오북 등록하기</h3>
+                <p>Word 전자책(.docx)이나 고음질 오디오북 파일을 스튜디오에 업로드합니다.</p>
+                <div class="action-link">콘텐츠 관리로 이동 ➔</div>
+              </div>
+            </div>
+
+            <div class="glass-card quick-action-card" id="cardQuickUsers">
+              <div class="action-icon-box" style="background: rgba(0, 242, 254, 0.14); color: var(--neon-cyan);">👤</div>
+              <div class="action-details">
+                <h3>새 회원 계정 발급하기</h3>
+                <p>북웨이브 서재에 접속할 수 있는 회원 아이디와 비밀번호를 생성합니다.</p>
+                <div class="action-link" style="color: var(--neon-cyan);">회원 관리로 이동 ➔</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW 2: CONTENT MANAGEMENT
+             ========================================== -->
+        <section id="viewContent" class="studio-view">
+          <div class="view-header">
+            <h2>도서 및 오디오북 관리</h2>
+            <p>새 파일을 업로드하여 라이브러리에 등록하거나 기존 콘텐츠를 삭제합니다.</p>
+          </div>
+
+          <!-- Upload Zones Grid (Dedicated Word eBook & Audiobook Dropzones) -->
+          <div class="upload-zones-grid">
+            <!-- Zone 1: Word eBook Dropzone -->
+            <div class="glass-card upload-zone-card ebook-zone">
+              <div class="card-header-styled">
+                <div class="card-title-styled">
+                  <span>📖</span>
+                  <span>전자책 등록</span>
+                  <span class="badge-format-tag badge-word">Word 전용</span>
+                </div>
+                <span style="font-size: 0.78rem; color: #38bdf8; font-weight: 600;">
+                  .docx, .doc 전용
+                </span>
+              </div>
+
+              <div style="padding: 20px;">
+                <div class="studio-dropzone dropzone-ebook" id="adminEbookDropzone">
+                  <div class="dropzone-glyph" style="color: #38bdf8;">📄</div>
+                  <div class="dropzone-heading">Word 전자책 파일을 여기에 끌어다 놓으세요</div>
+                  <div class="dropzone-subtext">Word 문서(.docx)만 등록 가능하며 실제 종이책 양면 뷰어로 자동 변환됩니다</div>
+                  <button class="btn-pill btn-pill-primary btn-upload-select" id="btnSelectEbookFiles" style="padding: 8px 20px; font-size: 0.88rem; background: linear-gradient(135deg, #0284c7, #0ea5e9);">
+                    <span>📄</span>
+                    <span>Word 전자책 선택</span>
+                  </button>
+                  <input type="file" id="adminEbookFileInput" multiple accept=".docx,.doc" style="display: none;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 2: Audiobook Dropzone -->
+            <div class="glass-card upload-zone-card audio-zone">
+              <div class="card-header-styled">
+                <div class="card-title-styled">
+                  <span>🎧</span>
+                  <span>오디오북 등록</span>
+                  <span class="badge-format-tag badge-audio">모든 음원 지원</span>
+                </div>
+                <span style="font-size: 0.78rem; color: #f97316; font-weight: 600;">
+                  MP3, M4A, WAV, FLAC 등
+                </span>
+              </div>
+
+              <div style="padding: 20px;">
+                <div class="studio-dropzone dropzone-audio" id="adminAudioDropzone">
+                  <div class="dropzone-glyph" style="color: #f97316;">🎵</div>
+                  <div class="dropzone-heading">오디오북 음원 파일을 여기에 끌어다 놓으세요</div>
+                  <div class="dropzone-subtext">MP3, M4A, WAV, FLAC, AAC, OGG 등 모든 고음질 음원을 등록할 수 있습니다</div>
+                  <button class="btn-pill btn-pill-primary btn-upload-select" id="btnSelectAudioFiles" style="padding: 8px 20px; font-size: 0.88rem; background: linear-gradient(135deg, #f97316, #ea580c);">
+                    <span>🎵</span>
+                    <span>오디오북 음원 선택</span>
+                  </button>
+                  <input type="file" id="adminAudioFileInput" multiple accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac,.wma,.opus,.m4b" style="display: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Progress (Common for both zones) -->
+          <div class="glass-card upload-progress-card" id="uploadProgressArea" style="display: none; margin-bottom: 24px; padding: 18px 24px;">
+            <div class="progress-info-row">
+              <span id="uploadStatusText" style="color: #ffffff; font-weight: 600; font-size: 0.92rem;">업로드 중...</span>
+              <span id="uploadPercentText" style="color: var(--neon-orange); font-weight: 700; font-size: 0.95rem;">0%</span>
+            </div>
+            <div class="progress-track" style="margin-top: 10px;">
+              <div class="progress-fill-bar" id="uploadProgressBar"></div>
+            </div>
+          </div>
+
+          <!-- Content List Table Card -->
+          <div class="glass-card">
+            <div class="table-toolbar">
+              <div class="card-title-styled">
+                <span>📋</span>
+                <span>등록된 콘텐츠 목록</span>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div class="studio-search-wrap">
+                  <span style="font-size: 0.82rem; color: var(--studio-text-faint);">🔍</span>
+                  <input type="text" id="adminSearchInput" class="studio-search-input" placeholder="제목 또는 파일명 검색...">
+                </div>
+
+                <div class="studio-segmented-tabs">
+                  <button class="seg-tab-btn active" data-filter="all">전체</button>
+                  <button class="seg-tab-btn" data-filter="ebook">전자책</button>
+                  <button class="seg-tab-btn" data-filter="audiobook">오디오북</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div style="overflow-x: auto;">
+              <table class="studio-table">
+                <thead>
+                  <tr>
+                    <th style="width: 100px;">분류</th>
+                    <th>제목 / 파일명</th>
+                    <th style="width: 100px;">포맷</th>
+                    <th style="width: 110px;">크기</th>
+                    <th style="width: 160px;">등록일시</th>
+                    <th style="width: 170px; text-align: center;">관리</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTableBody">
+                  <!-- Dynamically populated via admin.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <div id="adminEmptyState" style="display: none; padding: 50px 20px; text-align: center;">
+              <div style="font-size: 2.2rem; margin-bottom: 10px;">📭</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-bottom: 6px;">등록된 콘텐츠가 없습니다</div>
+              <div style="font-size: 0.82rem; color: var(--studio-text-muted);">위의 업로드 영역에 파일을 끌어다 놓아 첫 도서를 등록해 보세요.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW 3: USER ACCOUNTS MANAGEMENT
+             ========================================== -->
+        <section id="viewUsers" class="studio-view">
+          <div class="view-header">
+            <h2>회원 계정 관리</h2>
+            <p>북웨이브 서재에 로그인할 수 있는 사용자 아이디와 비밀번호를 발급 및 관리합니다.</p>
+          </div>
+
+          <div class="glass-card">
+            <!-- Add User Form -->
+            <div class="member-create-box">
+              <form id="formAddUser" onsubmit="return false;" class="member-create-form">
+                <div class="form-group-studio">
+                  <label>사용자 아이디 (ID)</label>
+                  <input type="text" id="newUsername" placeholder="예: reader01" class="studio-input" required autocomplete="off">
+                </div>
+
+                <div class="form-group-studio">
+                  <label>비밀번호 (PW)</label>
+                  <input type="password" id="newPassword" placeholder="비밀번호 설정" class="studio-input" required autocomplete="new-password">
+                </div>
+
+                <div class="form-group-studio">
+                  <label>이름 / 닉네임 (선택)</label>
+                  <input type="text" id="newName" placeholder="예: 김북웨" class="studio-input">
+                </div>
+
+                <div class="form-group-studio">
+                  <label>회원 등급</label>
+                  <select id="newTier" class="studio-input" style="height: 42px; cursor: pointer;">
+                    <option value="free">무료 (이용 전면 제한)</option>
+                    <option value="pro" selected>PRO (광고 시청 후 이용)</option>
+                    <option value="premium">프리미엄 (무광고 + 5권 다운로드)</option>
+                  </select>
+                </div>
+
+                <button type="button" class="gate-submit-btn" id="btnSubmitUser" style="padding: 10px 16px; font-size: 0.85rem; height: 42px; cursor: pointer;">
+                  <span>➕ 회원 등록</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Multi-device Sync Guidance Banner -->
+            <div style="margin: 0 24px 16px 24px; padding: 14px 18px; border-radius: 12px; background: rgba(255, 107, 0, 0.08); border: 1px solid rgba(255, 107, 0, 0.28); display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="font-size: 0.88rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                  <span>📲</span>
+                  <span>스마트폰 및 다른 기기에서 회원 로그인하는 방법 안내</span>
+                </div>
+                <button type="button" class="btn-pill btn-pill-primary" id="btnSyncAllUsersLink" style="padding: 6px 14px; font-size: 0.78rem;">
+                  <span>🔗</span>
+                  <span>전체 회원 다른 기기 동기화 링크 복사</span>
+                </button>
+              </div>
+              <div style="font-size: 0.8rem; color: var(--studio-text-muted); line-height: 1.6;">
+                <div>• <strong>방법 1 (스마트 연동 링크 - 추천)</strong>: 아래 회원 목록의 <code>[📲 기기연동]</code> 버튼을 눌러 복사된 링크를 스마트폰(카톡/문자)으로 열면, 추가 배포 없이 스마트폰에 즉시 등록되어 로그인할 수 있습니다.</div>
+                <div>• <strong>방법 2 (같은 와이파이 연결 시)</strong>: 스마트폰 브라우저에 PC 주소 <code>http://192.168.0.3:8000</code> 을 입력하시면 실시간으로 즉시 연동됩니다.</div>
+                <div>• <strong>방법 3 (Netlify 배포 반영)</strong>: 최신 <code>netlify_deploy.zip</code> 파일을 Netlify에 드래그하여 업로드하시면 모든 기기에 영구 반영됩니다.</div>
+              </div>
+            </div>
+
+            <!-- Users Table Toolbar -->
+            <div class="card-header-styled">
+              <div class="card-title-styled">
+                <span>👥</span>
+                <span>등록된 회원 목록</span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-pill btn-pill-ghost" id="btnTogglePasswords" style="padding: 6px 14px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <span id="btnTogglePasswordsIcon">🔒</span>
+                  <span id="btnTogglePasswordsText">비밀번호 확인 (마스터 인증)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Users Table -->
+            <div style="overflow-x: auto;">
+              <table class="studio-table">
+                <thead>
+                  <tr>
+                    <th style="width: 150px;">아이디 (ID)</th>
+                    <th style="width: 130px;">이름 / 닉네임</th>
+                    <th style="width: 150px;">비밀번호</th>
+                    <th style="width: 160px;">회원 등급 (Tier)</th>
+                    <th style="width: 130px;">등록일시</th>
+                    <th style="width: 210px; text-align: center;">관리 / 기기연동</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <!-- Dynamically populated via admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW 4: ADVERTISEMENT ROTATION MANAGEMENT
+             ========================================== -->
+        <section id="viewAds" class="studio-view">
+          <div class="view-header">
+            <h2>광고 로테이션 관리</h2>
+            <p>PRO 회원이 전자책이나 오디오북을 열람/재생할 때 순차적 또는 무작위로 교대 송출되는 광고들을 등록하고 관리합니다.</p>
+          </div>
+
+          <!-- 1. Global Settings Card -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header-styled">
+              <div class="card-title-styled">
+                <span>⚙️</span>
+                <span>광고 송출 및 로테이션 모드 설정</span>
+              </div>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #ffffff; cursor: pointer;">
+                <input type="checkbox" id="adActiveToggle" checked style="accent-color: var(--neon-orange); width: 16px; height: 16px;">
+                <span>전체 광고 송출 활성화</span>
+              </label>
+            </div>
+
+            <div style="padding: 20px 24px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: center;">
+                <div class="form-group-studio">
+                  <label>광고 송출 순환 방식</label>
+                  <select id="adRotationModeSelect" class="studio-input" style="height: 42px; cursor: pointer;">
+                    <option value="sequence" selected>🔄 순차 교대 송출 (1번 ➔ 2번 ➔ 3번... 열람할 때마다 차례대로 순환)</option>
+                    <option value="random">🎲 무작위 랜덤 송출 (등록된 활성 광고 중 무작위로 1개 선택)</option>
+                  </select>
+                </div>
+                <div style="font-size: 0.82rem; color: var(--studio-text-muted); line-height: 1.5; background: rgba(255, 255, 255, 0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                  💡 여러 개의 광고를 등록해 두면 PRO 회원이 전자책이나 오디오북을 이용할 때마다 설정한 방식에 따라 광고가 자동으로 돌아가며 송출됩니다.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Registered Ads List Card -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header-styled">
+              <div class="card-title-styled">
+                <span>📑</span>
+                <span>등록된 로테이션 광고 목록</span>
+                <span id="adCountBadge" style="font-size: 0.75rem; background: rgba(255,107,0,0.2); color: var(--neon-orange); padding: 2px 8px; border-radius: 10px; font-weight: 700; border: 1px solid rgba(255,107,0,0.35);">0개</span>
+              </div>
+              <button type="button" class="btn-pill btn-pill-primary" id="btnAddNewAd" style="padding: 6px 16px; font-size: 0.82rem;">
+                <span>➕</span>
+                <span>새 광고 추가</span>
+              </button>
+            </div>
+
+            <div style="padding: 20px 24px;">
+              <div id="adListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+                <!-- Dynamically populated via admin.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Current Selected Ad Editor Form -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header-styled">
+              <div class="card-title-styled">
+                <span>✏️</span>
+                <span id="editorAdTitleBadge">광고 상세 정보 편집</span>
+              </div>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #ffffff; cursor: pointer;">
+                <input type="checkbox" id="inputAdItemActive" checked style="accent-color: var(--neon-orange); width: 16px; height: 16px;">
+                <span>이 광고 송출 켜기</span>
+              </label>
+            </div>
+
+            <div style="padding: 24px;">
+              <form id="formAdSettings" onsubmit="return false;" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+                <div class="form-group-studio">
+                  <label>광고 제목 (헤드라인)</label>
+                  <input type="text" id="inputAdTitle" class="studio-input" placeholder="예: 탈로스 / 북웨이브 프리미엄" required>
+                </div>
+
+                <div class="form-group-studio">
+                  <label>스폰서 / 브랜드명</label>
+                  <input type="text" id="inputAdSponsor" class="studio-input" placeholder="예: bookwave official">
+                </div>
+
+                <div class="form-group-studio" style="grid-column: 1 / -1;">
+                  <label>광고 홍보 문구 (설명)</label>
+                  <textarea id="inputAdMessage" class="studio-input" rows="3" style="resize: vertical;" placeholder="PRO 회원에게 전달할 광고 홍보 문구를 입력하세요."></textarea>
+                </div>
+
+                <div class="form-group-studio" style="grid-column: 1 / -1;">
+                  <label>광고 사진 / 배너 이미지 (선택)</label>
+                  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="btn-pill btn-pill-primary" id="btnSelectAdImage" style="padding: 8px 16px; font-size: 0.84rem;">
+                      <span>🖼️</span>
+                      <span>내 컴퓨터에서 사진 선택</span>
+                    </button>
+                    <input type="file" id="inputAdImageFile" accept="image/*" style="display: none;">
+                    <input type="text" id="inputAdImageUrl" class="studio-input" style="flex: 1; min-width: 200px;" placeholder="또는 이미지 URL 직접 입력 (https://... 또는 /library/...)">
+                    <button type="button" class="btn-pill btn-pill-ghost" id="btnRemoveAdImage" style="padding: 8px 14px; font-size: 0.84rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
+                      <span>🗑️</span>
+                      <span>사진 삭제</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group-studio">
+                  <label>클릭 시 연결 링크 (URL)</label>
+                  <input type="text" id="inputAdLink" class="studio-input" placeholder="예: https://... 또는 #">
+                </div>
+
+                <div class="form-group-studio">
+                  <label>강제 시청 시간 (초 단위)</label>
+                  <input type="number" id="inputAdSkipSeconds" class="studio-input" min="0" max="30" value="5">
+                </div>
+
+                <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 12px;">
+                  <button type="button" class="btn-pill btn-pill-secondary" id="btnApplyCurrentAd" style="padding: 10px 20px; font-size: 0.86rem;">
+                    <span>✓</span>
+                    <span>현재 광고 변경사항 임시 반영</span>
+                  </button>
+                  <button type="submit" class="gate-submit-btn" id="btnSaveAd" style="width: auto; padding: 11px 28px; font-size: 0.9rem;">
+                    <span>💾 전체 광고 설정 최종 저장</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- 4. Live Ad Preview Box with Navigator -->
+          <div class="glass-card">
+            <div class="card-header-styled">
+              <div class="card-title-styled">
+                <span>👁️</span>
+                <span>PRO 회원에게 표시될 실시간 광고 미리보기</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="btn-pill btn-pill-ghost" id="btnPrevPreviewAd" style="padding: 5px 12px; font-size: 0.78rem;">◀ 이전 광고</button>
+                <span id="previewAdIndexIndicator" style="font-size: 0.78rem; color: var(--neon-orange); font-weight: 700;">[ 1 / 1 ]</span>
+                <button type="button" class="btn-pill btn-pill-ghost" id="btnNextPreviewAd" style="padding: 5px 12px; font-size: 0.78rem;">다음 광고 ▶</button>
+              </div>
+            </div>
+            <div style="padding: 36px 20px; display: flex; justify-content: center; background: rgba(5, 7, 12, 0.45);">
+              <div id="adLivePreviewBox" style="width: 100%; max-width: 440px; background: rgba(18, 24, 38, 0.95); border: 1px solid rgba(255, 107, 0, 0.35); border-radius: 18px; padding: 28px; box-shadow: 0 14px 40px rgba(0,0,0,0.6); text-align: center; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <span id="previewAdSponsor" style="font-size: 0.72rem; color: var(--neon-orange); font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px;">BOOKWAVE SPONSOR</span>
+                  <span id="previewAdTimer" style="font-size: 0.74rem; background: rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 12px; color: var(--studio-text-muted);">⏱️ 5초 후 시작</span>
+                </div>
+                <!-- Banner Image Preview -->
+                <div id="previewAdImageContainer" style="display: none; margin-bottom: 14px; border-radius: 12px; overflow: hidden; max-height: 180px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.1);">
+                  <img id="previewAdImage" src="" alt="광고 이미지" style="width: 100%; height: auto; max-height: 180px; object-fit: cover; display: block;">
+                </div>
+                <div id="previewAdDefaultIcon" style="font-size: 2.4rem; margin-bottom: 12px;">📢</div>
+                <h3 id="previewAdTitle" style="font-size: 1.18rem; font-weight: 800; color: #ffffff; margin-bottom: 8px;">북웨이브 프리미엄 멤버십</h3>
+                <p id="previewAdMessage" style="font-size: 0.85rem; color: var(--studio-text-muted); line-height: 1.5; margin-bottom: 22px;">지금 프리미엄으로 업그레이드하고 광고 없이 무제한으로 다운로드하여 감상하세요!</p>
+                <button class="gate-submit-btn" style="padding: 9px 18px; font-size: 0.88rem;">자세히 보기 ➔</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Bottom Player for Preview -->
+  <div class="audio-player-bar" id="audioPlayerBar">
+    <div class="player-info">
+      <div class="player-thumb">🎧</div>
+      <div class="player-details">
+        <div class="player-title" id="playerTitle">미리듣기</div>
+        <div class="player-subtitle" id="playerSubtitle">재생 대기 중</div>
+      </div>
+    </div>
+
+    <div class="player-controls-center">
+      <div class="control-buttons">
+        <button class="ctrl-btn" id="btnBackward" title="10초 뒤로">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 4v6h6M23 20v-6h-6"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          </svg>
+          <span style="font-size: 0.65rem; margin-left: 2px;">-10s</span>
+        </button>
+
+        <button class="ctrl-btn ctrl-play" id="btnPlayPause" title="재생/일시정지">
+          <span id="playIcon">▶</span>
+        </button>
+
+        <button class="ctrl-btn" id="btnForward" title="10초 앞으로">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span style="font-size: 0.65rem; margin-left: 2px;">+10s</span>
+        </button>
+      </div>
+
+      <div class="timeline-wrap">
+        <span class="time-label" id="currentTimeLabel">0:00</span>
+        <input type="range" class="slider" id="audioTimeline" value="0" min="0" max="100" step="0.1">
+        <span class="time-label" id="durationLabel">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-tools-right">
+      <select class="speed-select" id="speedSelect" title="배속 설정">
+        <option value="1.0" selected>1.0x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2.0">2.0x</option>
+      </select>
+
+      <button class="icon-btn" id="btnClosePlayer" title="플레이어 닫기" style="width: 28px; height: 28px; font-size: 0.8rem;">
+        ✕
+      </button>
+    </div>
+
+    <audio id="audioElement" preload="metadata"></audio>
+  </div>
+
+  <!-- Fullscreen Reader Preview Modal -->
+  <div class="reader-modal" id="readerModal">
+    <div class="reader-header">
+      <div class="reader-title-box">
+        <button class="btn btn-secondary" onclick="closeReader()">
+          <span>←</span>
+          <span>목록으로</span>
+        </button>
+        <div class="reader-title" id="readerBookTitle">미리보기</div>
+      </div>
+
+      <div class="reader-tools">
+        <button class="icon-btn" onclick="closeReader()" title="닫기">✕</button>
+      </div>
+    </div>
+
+    <div class="reader-body" id="readerBody"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMessage">알림</span>
+  </div>
+
+  <!-- Master Password Verification Modal for Revealing User Passwords -->
+  <div class="studio-gate-overlay" id="masterAuthModal" style="display: none; z-index: 10000;">
+    <div class="studio-gate-box" style="max-width: 400px; padding: 32px 28px;">
+      <div class="gate-lock-icon" style="background: rgba(0, 242, 254, 0.12); color: var(--neon-cyan);">🔑</div>
+      <h2 class="gate-brand-title" style="font-size: 1.25rem;">보안 인증</h2>
+      <p class="gate-brand-desc" style="font-size: 0.84rem; margin-bottom: 20px;">
+        회원 비밀번호를 확인하려면 접속 암호를 입력해 주세요.
+      </p>
+
+      <form id="formMasterAuth" onsubmit="return false;">
+        <div class="gate-form-group" style="text-align: left; margin-bottom: 16px;">
+          <input type="password" id="inputMasterAuthPassword" class="studio-input" placeholder="접속 암호 입력" style="width: 100%; box-sizing: border-box; text-align: center; letter-spacing: 2px;">
+        </div>
+
+        <div id="masterAuthError" class="gate-error-message" style="display: none; margin-bottom: 14px;"></div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-pill btn-pill-ghost" id="btnCancelMasterAuth" style="flex: 1; padding: 10px; justify-content: center;">
+            취소
+          </button>
+          <button type="submit" class="gate-submit-btn" id="btnSubmitMasterAuth" style="flex: 1; padding: 10px; justify-content: center;">
+            확인
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Studio Master Password Change Modal -->
+  <div class="studio-gate-overlay" id="modalChangeMasterPw" style="display: none; z-index: 10000;">
+    <div class="studio-gate-box" style="max-width: 420px; padding: 32px 28px;">
+      <div class="gate-lock-icon" style="background: rgba(249, 115, 22, 0.12); color: var(--neon-orange);">🔑</div>
+      <h2 class="gate-brand-title" style="font-size: 1.25rem;">스튜디오 접속 암호 변경</h2>
+      <p class="gate-brand-desc" style="font-size: 0.84rem; margin-bottom: 20px;">
+        스튜디오에 접속할 때 사용하는 마스터 암호를 새롭게 설정합니다.
+      </p>
+
+      <form id="formChangeMasterPw" onsubmit="return false;">
+        <div class="gate-form-group" style="text-align: left; margin-bottom: 12px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--studio-text-muted); display: block; margin-bottom: 4px;">새 접속 암호</label>
+          <input type="password" id="inputNewMasterPw" class="studio-input" placeholder="새 접속 암호 입력 (4자 이상)" style="width: 100%; box-sizing: border-box;" required autocomplete="new-password">
+        </div>
+
+        <div class="gate-form-group" style="text-align: left; margin-bottom: 16px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--studio-text-muted); display: block; margin-bottom: 4px;">새 접속 암호 확인</label>
+          <input type="password" id="inputConfirmMasterPw" class="studio-input" placeholder="새 접속 암호 다시 입력" style="width: 100%; box-sizing: border-box;" required autocomplete="new-password">
+        </div>
+
+        <div id="changeMasterPwError" class="gate-error-message" style="display: none; margin-bottom: 14px;"></div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-pill btn-pill-ghost" id="btnCancelChangeMasterPw" style="flex: 1; padding: 10px; justify-content: center;">
+            취소
+          </button>
+          <button type="submit" class="gate-submit-btn" id="btnSubmitChangeMasterPw" style="flex: 1.2; padding: 10px; justify-content: center;">
+            암호 변경 완료
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- User Password Change Modal (From Studio) -->
+  <div class="studio-gate-overlay" id="modalChangeUserPw" style="display: none; z-index: 10000;">
+    <div class="studio-gate-box" style="max-width: 420px; padding: 32px 28px;">
+      <div class="gate-lock-icon" style="background: rgba(0, 242, 254, 0.12); color: var(--neon-cyan);">👤</div>
+      <h2 class="gate-brand-title" style="font-size: 1.25rem;">회원 비밀번호 변경</h2>
+      <p class="gate-brand-desc" id="userChangePwDesc" style="font-size: 0.84rem; margin-bottom: 20px;">
+        선택한 회원의 비밀번호를 재설정합니다.
+      </p>
+
+      <form id="formChangeUserPw" onsubmit="return false;">
+        <input type="hidden" id="inputTargetUsername" value="">
+
+        <div class="gate-form-group" style="text-align: left; margin-bottom: 16px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--studio-text-muted); display: block; margin-bottom: 4px;">새 비밀번호</label>
+          <input type="password" id="inputNewUserPw" class="studio-input" placeholder="새 비밀번호 입력" style="width: 100%; box-sizing: border-box;" required autocomplete="new-password">
+        </div>
+
+        <div id="changeUserPwError" class="gate-error-message" style="display: none; margin-bottom: 14px;"></div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-pill btn-pill-ghost" id="btnCancelChangeUserPw" style="flex: 1; padding: 10px; justify-content: center;">
+            취소
+          </button>
+          <button type="submit" class="gate-submit-btn" id="btnSubmitChangeUserPw" style="flex: 1.2; padding: 10px; justify-content: center;">
+            비밀번호 변경
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

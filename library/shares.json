@@ -1,0 +1,112 @@
+{
+  "BW-9284": {
+    "code": "BW-9284",
+    "itemId": "ebook_test_101",
+    "title": "테스트 전자책 공유본",
+    "type": "ebook",
+    "spreadIndex": 4,
+    "currentTime": 0.0,
+    "sender": "북웨이브회원",
+    "createdAt": "2026-10-05 19:33"
+  },
+  "BW-5033": {
+    "code": "BW-5033",
+    "itemId": "audio_test_202",
+    "title": "테스트 오디오북 공유본",
+    "type": "audiobook",
+    "spreadIndex": 0,
+    "currentTime": 450.5,
+    "sender": "오디오팬",
+    "createdAt": "2026-10-05 19:33"
+  },
+  "BW-8215": {
+    "code": "BW-8215",
+    "itemId": "ebook_test_101",
+    "title": "테스트 전자책 공유본",
+    "type": "ebook",
+    "spreadIndex": 4,
+    "currentTime": 0.0,
+    "sender": "북웨이브회원",
+    "createdAt": "2026-10-05 19:41"
+  },
+  "BW-6249": {
+    "code": "BW-6249",
+    "itemId": "audio_test_202",
+    "title": "테스트 오디오북 공유본",
+    "type": "audiobook",
+    "spreadIndex": 0,
+    "currentTime": 450.5,
+    "sender": "오디오팬",
+    "createdAt": "2026-10-05 19:41"
+  },
+  "BW-6237": {
+    "code": "BW-6237",
+    "itemId": "ebook_test_101",
+    "title": "테스트 전자책 공유본",
+    "type": "ebook",
+    "spreadIndex": 4,
+    "currentTime": 0.0,
+    "sender": "북웨이브회원",
+    "createdAt": "2026-10-05 21:11"
+  },
+  "BW-3206": {
+    "code": "BW-3206",
+    "itemId": "audio_test_202",
+    "title": "테스트 오디오북 공유본",
+    "type": "audiobook",
+    "spreadIndex": 0,
+    "currentTime": 450.5,
+    "sender": "오디오팬",
+    "createdAt": "2026-10-05 21:11"
+  },
+  "BW-9250": {
+    "code": "BW-9250",
+    "itemId": "ebook_test_101",
+    "title": "테스트 전자책 공유본",
+    "type": "ebook",
+    "spreadIndex": 4,
+    "currentTime": 0.0,
+    "sender": "북웨이브회원",
+    "createdAt": "2026-10-06 13:52"
+  },
+  "BW-4495": {
+    "code": "BW-4495",
+    "itemId": "audio_test_202",
+    "title": "테스트 오디오북 공유본",
+    "type": "audiobook",
+    "spreadIndex": 0,
+    "currentTime": 450.5,
+    "sender": "오디오팬",
+    "createdAt": "2026-10-06 13:53"
+  },
+  "BW-4987": {
+    "code": "BW-4987",
+    "itemId": "book_이상한 가게 연우당 2권 완성본.docx",
+    "title": "이상한 가게 연우당 2권 완성본",
+    "type": "ebook",
+    "spreadIndex": 0,
+    "currentTime": 0.0,
+    "sender": "김독서",
+    "createdAt": "2026-10-06 13:55"
+  },
+  "BW-4106": {
+    "code": "BW-4106",
+    "itemId": "book_이상한 가게 연우당 2권 완성본.docx",
+    "title": "이상한 가게 연우당 2권 완성본",
+    "type": "ebook",
+    "spreadIndex": 0,
+    "currentTime": 0.0,
+    "sender": "김독서",
+    "createdAt": "2026-10-06 13:55"
+  },
+  "BW-5047": {
+    "code": "BW-5047",
+    "itemId": "book_이상한 가게 연우당 2권 완성본.docx",
+    "title": "이상한 가게 연우당 2권 완성본",
+    "type": "ebook",
+    "spreadIndex": 0,
+    "currentTime": 0.0,
+    "sender": "김독서",
+    "createdAt": "2026-10-06 14:23"
+  }
+}

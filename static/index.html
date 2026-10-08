@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>북웨이브 (bookwave) - 오디오북 & 전자책</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Google Fonts: Pretendard & Noto Serif KR for book reading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- EPUB.js & JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+</head>
+<body data-theme="dark">
+
+  <!-- Mandatory Login Gate (회원 전용 로그인) -->
+  <div class="mandatory-login-gate" id="mandatoryLoginGate">
+    <div class="login-gate-card">
+      <div class="gate-logo">
+        <span class="gate-brand">bookwave</span>
+        <span class="gate-badge">북웨이브</span>
+      </div>
+      <h2 class="gate-title">북웨이브 회원 로그인</h2>
+      <p class="gate-desc">
+        등록된 회원 계정의 아이디와 비밀번호를 입력해 주세요.
+      </p>
+
+      <form id="userLoginForm" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">
+            아이디 (ID)
+          </label>
+          <input type="text" id="loginUsername" placeholder="아이디 입력" class="gate-input" required autocomplete="username">
+        </div>
+
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">
+            비밀번호 (PW)
+          </label>
+          <input type="password" id="loginPassword" placeholder="비밀번호 입력" class="gate-input" required autocomplete="current-password">
+        </div>
+
+        <div id="loginErrorMessage" class="login-error-msg" style="display: none; color: #ef4444; font-size: 0.8rem; margin-top: 2px;"></div>
+
+        <button type="submit" class="btn btn-welaaa-primary" id="btnLoginSubmit" style="width: 100%; justify-content: center; padding: 12px; margin-top: 6px;">
+          <span>북웨이브 로그인</span>
+          <span>▶</span>
+        </button>
+      </form>
+
+      <div style="margin-top: 20px; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 14px; line-height: 1.5;">
+        💡 기본 계정: <strong>reader</strong> / 암호 <strong>1234</strong> (또는 스튜디오에서 발급한 계정)
+      </div>
+    </div>
+  </div>
+
+  <!-- Welaaa/Bookwave Header -->
+  <header class="app-header welaaa-header">
+    <div class="header-container">
+      <div class="logo-group" id="logoBtn" style="cursor: pointer;">
+        <div class="welaaa-logo">
+          <span class="w-brand">bookwave</span>
+          <span class="w-badge">북웨이브</span>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="welaaa-nav">
+        <button class="welaaa-nav-item active" data-filter="all" id="navTabAll">홈</button>
+        <button class="welaaa-nav-item" data-filter="audiobook" id="navTabAudio">🎧 오디오북</button>
+        <button class="welaaa-nav-item" data-filter="ebook" id="navTabEbook">📖 전자책</button>
+        <button class="welaaa-nav-item" data-filter="offline" id="navOfflineTab" style="display: none;">
+          <span>📥 다운로드</span>
+          <span id="navOfflineCount" style="font-size: 0.72rem; background: rgba(255, 107, 0, 0.2); color: var(--welaaa-orange); padding: 1px 7px; border-radius: 10px; font-weight: 700; margin-left: 2px;">0/5</span>
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <!-- Wi-Fi Status Simulator Button -->
+        <button class="btn btn-secondary btn-sm" id="btnWifiToggle" title="와이파이 ON/OFF 시뮬레이터 (오프라인 테스트용)" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px;">
+          <span id="wifiIcon">📶</span>
+          <span id="wifiLabel">와이파이 ON</span>
+        </button>
+
+        <!-- Cross-Network Share Code Opener Button -->
+        <button class="btn btn-secondary btn-sm" id="btnOpenShareCode" title="공유 코드로 도서 열기 (다른 와이파이/외부 접속 지원)" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+          <span>🔗</span>
+          <span>공유 도서 열기</span>
+        </button>
+
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="책, 저자, 오디오북 검색">
+        </div>
+
+        <!-- User Auth Profile Container -->
+        <div id="authContainer"></div>
+
+        <button class="icon-btn" id="themeToggleBtn" title="화면 모드 전환">
+          🌙
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Offline Warning Banner -->
+  <div id="offlineNoticeBanner" style="display: none; background: linear-gradient(90deg, #dc2626, #b91c1c); color: #ffffff; text-align: center; padding: 10px 16px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 2px 10px rgba(220, 38, 38, 0.4); z-index: 55; position: sticky; top: 60px;">
+    <span id="offlineNoticeText">📵 현재 오프라인(와이파이 없음) 상태입니다.</span>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="main-content welaaa-main">
+
+    <!-- Bookwave Dedicated Home Showcase Portal (북웨이브 홈 전용 화면 - 책은 없고 브랜드/안내만 표시) -->
+    <section class="bookwave-home-screen" id="homeBookwaveScreen">
+      <!-- 1. Hero Brand Showcase -->
+      <div class="bw-home-hero">
+        <div class="bw-hero-left">
+          <div class="bw-hero-badge">🌊 프리미엄 오디오북 & 전자책 플랫폼</div>
+          <h1 class="bw-hero-title">책과 소리의 파도, <span class="highlight-orange">북웨이브 (bookwave)</span></h1>
+          <p class="bw-hero-desc">
+            전문 성우의 깊이 있는 완독 사운드부터 실제 종이책처럼 펼쳐지는 양면 전자책까지. 언제 어디서나 나만의 특별한 독서 경험을 북웨이브에서 만나보세요.
+          </p>
+          <div class="bw-hero-buttons">
+            <button class="btn btn-welaaa-primary btn-hero-nav" id="btnGoAudiobooks">
+              <span>🎧 오디오북 서재 가기</span>
+              <span>→</span>
+            </button>
+            <button class="btn btn-welaaa-secondary btn-hero-nav" id="btnGoEbooks">
+              <span>📖 전자책 서재 가기</span>
+              <span>→</span>
+            </button>
+            <button class="btn btn-welaaa-secondary btn-hero-nav" id="btnGoOffline" style="display: none;">
+              <span>📥 다운로드 보관함</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+        <div class="bw-hero-right">
+          <div class="bw-hero-art-card">
+            <div class="bw-art-glow"></div>
+            <div class="bw-art-inner">
+              <span class="bw-art-icon">🌊</span>
+              <div class="bw-art-text-group">
+                <span class="bw-art-brand">bookwave</span>
+                <span class="bw-art-slogan">소리와 활자가 만드는 깊은 감동</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Service Feature Highlights (3 Cards) -->
+      <div class="bw-features-grid">
+        <div class="bw-feature-card" id="cardNavAudio" title="오디오북 서재로 이동">
+          <div class="bw-feat-icon-box orange">🎧</div>
+          <h3 class="bw-feat-title">전문 성우 100% 완독 오디오북</h3>
+          <p class="bw-feat-desc">
+            기계음이 아닌 실제 전문 성우의 풍부한 감정선과 호흡으로 책 한 권을 처음부터 끝까지 생생하게 완독해 드립니다.
+          </p>
+          <button class="btn-feat-action" id="btnCardNavAudio">
+            <span>오디오북 둘러보기</span> <span>→</span>
+          </button>
+        </div>
+
+        <div class="bw-feature-card" id="cardNavEbook" title="전자책 서재로 이동">
+          <div class="bw-feat-icon-box green">📖</div>
+          <h3 class="bw-feat-title">종이책 감성 양면 전자책 리더</h3>
+          <p class="bw-feat-desc">
+            Word(.docx) 문서를 기반으로 실제 종이책을 펼쳐보듯 좌우 양면으로 부드럽게 넘겨보는 편안한 독서 경험을 선사합니다.
+          </p>
+          <button class="btn-feat-action" id="btnCardNavEbook">
+            <span>전자책 둘러보기</span> <span>→</span>
+          </button>
+        </div>
+
+        <div class="bw-feature-card" id="cardTierHighlight">
+          <div class="bw-feat-icon-box purple" id="cardTierIcon">👑</div>
+          <h3 class="bw-feat-title" id="cardTierTitle">북웨이브 맞춤형 멤버십</h3>
+          <p class="bw-feat-desc" id="cardTierDesc">
+            원하는 방식으로 책을 즐기세요. 합리적인 PRO 멤버십부터 최고급 프리미엄 혜택까지 제공합니다.
+          </p>
+          <button class="btn-feat-action" id="btnCardNavTier">
+            <span id="btnCardNavTierText">도서 둘러보기</span> <span>→</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Current User Membership Tier Banner -->
+      <div class="bw-tier-status-banner" id="bwTierStatusBanner">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 2rem;" id="bannerTierIcon">👑</div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span style="font-weight: 800; font-size: 1.05rem; color: var(--text-primary);" id="bannerUserName">북웨이브 회원</span>
+              <span id="bannerTierBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px; font-weight: 800;">프리미엄</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;" id="bannerTierBenefit">
+              회원 등급 혜택이 적용 중입니다.
+            </p>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-secondary btn-sm" id="btnBannerAction" style="padding: 8px 16px; border-radius: 9999px;">
+            서재 바로가기 ▶
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Curated Section 1: In Progress / Continue (내 서재 이어보기) -->
+    <section class="curation-section" id="sectionContinue" style="display: none;">
+      <div class="section-header">
+        <h3 class="section-title">⏱️ 최근 이용 중인 콘텐츠</h3>
+        <span class="section-subtitle">듣던 오디오북과 읽던 책을 바로 이어보세요</span>
+      </div>
+      <div class="welaaa-grid" id="gridContinue"></div>
+    </section>
+
+    <!-- Curated Section 2: Audiobooks (인기 오디오북) -->
+    <section class="curation-section" id="sectionAudio" style="display: none;">
+      <div class="section-header">
+        <h3 class="section-title">🎧 전문 성우 완독 오디오북 서재</h3>
+        <span class="section-subtitle">생생한 사운드로 끝까지 완독하는 고품격 오디오북</span>
+      </div>
+      <div class="welaaa-grid" id="gridAudiobooks"></div>
+    </section>
+
+    <!-- Curated Section 3: eBooks (베스트 전자책) -->
+    <section class="curation-section" id="sectionEbooks" style="display: none;">
+      <div class="section-header">
+        <h3 class="section-title">📖 종이책 감성 양면 전자책 서재</h3>
+        <span class="section-subtitle">실제 종이책을 펼친 듯한 Word(.docx) 양면 독서</span>
+      </div>
+      <div class="welaaa-grid" id="gridEbooks"></div>
+    </section>
+
+    <!-- Curated Section 4: Offline Downloads (프리미엄 전용 다운로드 보관함) -->
+    <section class="curation-section" id="sectionOffline" style="display: none;">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <h3 class="section-title">📥 프리미엄 오프라인 다운로드 보관함</h3>
+          <span class="section-subtitle">와이파이가 꺼져도 언제 어디서나 감상할 수 있는 다운로드 도서 (최대 5권)</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btnSectionClearAllDownloads" style="font-size: 0.78rem; padding: 6px 12px; color: #ef4444; border-color: rgba(239,68,68,0.3); border-radius: 8px;">
+          🧹 보관함 전체 비우기
+        </button>
+      </div>
+      <div class="welaaa-grid" id="gridOffline"></div>
+    </section>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">서재에 등록된 콘텐츠가 없습니다</div>
+      <div class="empty-desc">
+        스튜디오에서 새로운 전자책이나 오디오북을 등록하시면 이곳에 진열됩니다.
+      </div>
+    </div>
+  </main>
+
+  <!-- Persistent Bottom Audio Player Bar -->
+  <div class="audio-player-bar welaaa-player" id="audioPlayerBar">
+    <div class="player-info">
+      <div class="player-thumb welaaa-thumb" id="playerThumb">🎧</div>
+      <div class="player-details">
+        <div class="player-title" id="playerTitle">선택된 오디오북 없음</div>
+        <div class="player-subtitle" id="playerSubtitle">북웨이브 오디오북 플레이어</div>
+      </div>
+    </div>
+
+    <div class="player-controls-center">
+      <div class="control-buttons">
+        <button class="ctrl-btn" id="btnBackward" title="10초 뒤로">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 4v6h6M23 20v-6h-6"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          </svg>
+          <span style="font-size: 0.65rem; margin-left: 2px;">-10s</span>
+        </button>
+
+        <button class="ctrl-btn ctrl-play welaaa-play-btn" id="btnPlayPause" title="재생/일시정지">
+          <span id="playIcon">▶</span>
+        </button>
+
+        <button class="ctrl-btn" id="btnForward" title="10초 앞으로">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span style="font-size: 0.65rem; margin-left: 2px;">+10s</span>
+        </button>
+      </div>
+
+      <div class="timeline-wrap">
+        <span class="time-label" id="currentTimeLabel">0:00</span>
+        <input type="range" class="slider welaaa-slider" id="audioTimeline" value="0" min="0" max="100" step="0.1">
+        <span class="time-label" id="durationLabel">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-tools-right">
+      <select class="speed-select" id="speedSelect" title="배속 설정">
+        <option value="0.8">0.8x</option>
+        <option value="1.0" selected>1.0x</option>
+        <option value="1.2">1.2x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2.0">2.0x</option>
+      </select>
+
+      <div class="volume-wrap">
+        <span id="volumeIcon" style="cursor: pointer; font-size: 0.9rem;">🔊</span>
+        <input type="range" class="slider" id="volumeSlider" min="0" max="1" step="0.05" value="1">
+      </div>
+
+      <button class="icon-btn" id="btnPlayerShare" title="오디오북 공유 (다른 와이파이/외부 지원)" style="width: 28px; height: 28px; font-size: 0.8rem;">
+        🔗
+      </button>
+
+      <button class="icon-btn" id="btnClosePlayer" title="플레이어 닫기" style="width: 28px; height: 28px; font-size: 0.8rem;">
+        ✕
+      </button>
+    </div>
+
+    <audio id="audioElement" preload="metadata"></audio>
+  </div>
+
+  <!-- Physical Two-Page Spread Book Reader Modal -->
+  <div class="reader-modal physical-book-reader" id="readerModal">
+    <!-- Reader Top Bar -->
+    <div class="reader-header">
+      <div class="reader-title-box">
+        <button class="btn btn-secondary btn-back-library" id="btnReaderBack" onclick="closeReader()" title="서재로 돌아가기">
+          <span>←</span>
+          <span>서재로</span>
+        </button>
+        <div class="reader-title" id="readerBookTitle">책 제목</div>
+      </div>
+
+      <div class="reader-tools">
+        <button class="btn btn-secondary btn-sm" id="btnReaderShare" title="이 책 현재 위치 공유 (다른 와이파이/외부 지원)" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px; margin-right: 6px;">
+          <span>🔗</span> <span>공유</span>
+        </button>
+
+        <!-- TXT / Reading controls -->
+        <div class="reader-settings-panel" id="txtControls">
+          <button class="icon-btn" id="btnFontSmaller" title="글자 작게" style="width: 28px; height: 28px; font-size: 0.75rem;">A-</button>
+          <span id="fontSizeDisplay" style="font-size: 0.8rem; font-weight: 600; min-width: 32px; text-align: center;">15</span>
+          <button class="icon-btn" id="btnFontLarger" title="글자 크게" style="width: 28px; height: 28px; font-size: 0.75rem;">A+</button>
+          
+          <button class="icon-btn theme-choice" id="btnThemeSepia" title="세피아(종이책) 질감" style="width: 28px; height: 28px; font-size: 0.75rem; background: #f6f1e3; color: #3b302a;">📖</button>
+          <button class="icon-btn theme-choice" id="btnThemeDark" title="야간(다크) 독서" style="width: 28px; height: 28px; font-size: 0.75rem; background: #161b26; color: #e2e8f0;">🌙</button>
+          <button class="icon-btn theme-choice" id="btnThemeLight" title="주간 화이트" style="width: 28px; height: 28px; font-size: 0.75rem; background: #ffffff; color: #111;">☀️</button>
+        </div>
+
+        <button class="icon-btn" id="btnReaderClose" onclick="closeReader()" title="닫기">✕</button>
+      </div>
+    </div>
+
+    <!-- Main Book Stage Area (Two-page Spread with Navigation) -->
+    <div class="reader-body book-reader-body" id="readerBody">
+      <!-- Left Page Turn Button -->
+      <button class="book-nav-btn prev" id="btnPrevSpread" title="이전 장 (◀ / 왼쪽 화살표)">
+        <span class="nav-arrow">◀</span>
+        <span class="nav-text">이전 장</span>
+      </button>
+
+      <!-- Center Book Spread Viewport -->
+      <div class="book-viewport" id="bookViewport">
+        <div class="book-stage" id="bookStage">
+          <!-- Dynamically populated: Spread 0 (Cover 1p), Spread 1..N (Left & Right 2p), Spread Last (Back 1p) -->
+        </div>
+      </div>
+
+      <!-- Right Page Turn Button -->
+      <button class="book-nav-btn next" id="btnNextSpread" title="다음 장 (▶ / 오른쪽 화살표)">
+        <span class="nav-text">다음 장</span>
+        <span class="nav-arrow">▶</span>
+      </button>
+    </div>
+
+    <!-- Bottom Spread Progress & Guide Bar -->
+    <div class="reader-footer-bar">
+      <div class="spread-indicator-wrap">
+        <span class="spread-indicator" id="spreadIndicator">표지</span>
+      </div>
+      <div class="spread-help-text">
+        💡 좌/우 넘김 버튼이나 키보드 방향키(◀ ▶) 또는 페이지를 클릭하여 넘겨보세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- Free Tier Restriction Modal -->
+  <div class="app-modal-overlay" id="freeBlockModal" style="display: none;">
+    <div class="app-modal-card">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🔒</div>
+      <div style="font-size: 0.75rem; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.1); display: inline-block; padding: 4px 10px; border-radius: 12px; margin-bottom: 10px;">무료 회원 이용 안내</div>
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 10px; color: var(--text-primary);">도서 이용이 제한됩니다</h3>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; word-break: keep-all;">
+        현재 회원님은 <strong>무료 회원</strong>으로 등록되어 있어 전자책 및 오디오북 이용이 전면 제한되어 있습니다. 콘텐츠 이용을 원하시면 <strong>PRO</strong> 또는 <strong>프리미엄</strong> 등급으로 변경해 주세요.
+      </p>
+      <button class="btn btn-welaaa-primary" id="btnCloseFreeModal" style="width: 100%; justify-content: center; padding: 12px;">확인</button>
+    </div>
+  </div>
+
+  <!-- PRO Tier Interstitial Ad Modal -->
+  <div class="app-modal-overlay" id="proAdModal" style="display: none;">
+    <div class="app-modal-card" style="border-color: var(--welaaa-orange);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <span id="adModalSponsor" style="font-size: 0.72rem; color: var(--welaaa-orange); font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;">SPONSOR</span>
+        <span id="adCountdownBadge" style="font-size: 0.78rem; background: rgba(255, 107, 0, 0.15); color: var(--welaaa-orange); padding: 4px 10px; border-radius: 12px; font-weight: 700;">⏱️ 5초 후 시작</span>
+      </div>
+      <!-- Sponsor Banner Image (Optional) -->
+      <div id="adModalImageContainer" style="display: none; margin-bottom: 14px; border-radius: 14px; overflow: hidden; max-height: 200px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+        <img id="adModalImage" src="" alt="스폰서 광고" style="width: 100%; height: auto; max-height: 200px; object-fit: cover; display: block;">
+      </div>
+      <div id="adModalDefaultIcon" style="font-size: 2.6rem; margin-bottom: 12px;">📢</div>
+      <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">PRO 회원 스폰서 광고</div>
+      <h3 id="adModalTitle" style="font-size: 1.22rem; font-weight: 800; margin-bottom: 10px; color: var(--text-primary);">광고 제목</h3>
+      <p id="adModalMessage" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; word-break: keep-all;">
+        광고 문구가 표시됩니다.
+      </p>
+      <button class="btn btn-welaaa-primary" id="btnAdSkip" disabled style="width: 100%; justify-content: center; padding: 12px; opacity: 0.7; cursor: not-allowed;">
+        <span id="adBtnText">광고 시청 중... (5초)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Download Limit (5 Books) Exceeded Modal -->
+  <div class="app-modal-overlay" id="downloadLimitModal" style="display: none;">
+    <div class="app-modal-card" style="max-width: 480px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.5rem;">⚠️</span>
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0;">다운로드 한도 초과 (최대 5권)</h3>
+        </div>
+        <button class="icon-btn" id="btnCloseLimitModal" style="width: 28px; height: 28px; font-size: 0.8rem;">✕</button>
+      </div>
+
+      <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; word-break: keep-all;">
+        프리미엄 회원은 오디오북과 전자책을 합쳐 <strong>최대 5권까지만 오프라인 다운로드</strong>가 가능합니다. 새 도서를 다운로드하시려면 기존 보관 도서를 삭제하거나 보관함을 정리해 주세요.
+      </p>
+
+      <!-- Currently Downloaded Books List in Modal -->
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+        현재 보관함 도서 목록 (<span id="limitModalCount">0</span>/5권):
+      </div>
+      <div id="limitModalBookList" style="max-height: 170px; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <!-- Dynamic list populated in app.js -->
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+        <button class="btn btn-secondary btn-sm" id="btnClearAllDownloads" style="color: #ef4444; border-color: rgba(239,68,68,0.3); font-size: 0.8rem; padding: 7px 12px; border-radius: 8px;">
+          🧹 보관함 전체 비우기
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnGoOfflineFromModal" style="font-size: 0.8rem; padding: 7px 12px; border-radius: 8px;">
+          📥 보관함 가기
+        </button>
+        <button class="btn btn-welaaa-primary btn-sm" id="btnConfirmLimitModal" style="font-size: 0.8rem; padding: 7px 16px; border-radius: 8px;">
+          확인
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Sharing Modal (다른 와이파이 / LTE / 스마트폰 공유 지원) -->
+  <div class="app-modal-overlay" id="shareModal" style="display: none;">
+    <div class="app-modal-card" style="max-width: 480px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.3rem;">🌐</span>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0;">도서 스마트 공유</h3>
+        </div>
+        <button class="icon-btn" id="btnCloseShareModal" style="width: 28px; height: 28px; font-size: 0.8rem;">✕</button>
+      </div>
+
+      <div style="background: rgba(255, 107, 0, 0.08); border: 1px solid rgba(255, 107, 0, 0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 2rem;" id="shareItemIcon">📖</span>
+        <div style="flex: 1; overflow: hidden;">
+          <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="shareItemTitle">도서 제목</div>
+          <div style="font-size: 0.78rem; color: var(--welaaa-orange); font-weight: 700;" id="shareItemMeta">전자책 · 진도율 함께 공유</div>
+        </div>
+      </div>
+
+      <!-- 6-digit Share Code Box -->
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+          6자리 간편 공유 코드 (다른 폰에서 코드만 입력해도 바로 열림)
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="text" id="shareCodeInput" readonly style="flex: 1; font-family: monospace; font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; text-align: center; color: var(--welaaa-orange); background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px;">
+          <button class="btn btn-secondary" id="btnCopyShareCode" style="padding: 10px 14px; font-size: 0.82rem; white-space: nowrap;">
+            <span>📋</span> <span>코드 복사</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Direct Share Link Box (Different Wi-Fi / LTE) -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">
+            외부 접속 링크 (와이파이가 달라도 / LTE에서도 열림)
+          </label>
+          <span id="shareTunnelStatus" style="font-size: 0.7rem; color: #10b981; font-weight: 700;">● 접속 지원</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="text" id="shareLinkInput" readonly style="flex: 1; font-size: 0.8rem; color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-family: monospace; text-overflow: ellipsis;">
+          <button class="btn btn-welaaa-primary" id="btnCopyShareLink" style="padding: 10px 14px; font-size: 0.82rem; white-space: nowrap;">
+            <span>🔗</span> <span>링크 복사</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- QR Code Container for Phone Scanning -->
+      <div style="display: flex; align-items: center; gap: 16px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+        <div id="shareQrCodeBox" style="width: 86px; height: 86px; background: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 4px;">
+          <!-- Dynamic SVG/Canvas QR rendered here -->
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-primary);">📱 스마트폰 카메라로 QR 스캔</div>
+          <p style="font-size: 0.76rem; color: var(--text-secondary); margin: 0; line-height: 1.4; word-break: keep-all;">
+            다른 폰의 기본 카메라 앱으로 이 QR코드를 비추면 와이파이가 달라도 책이 즉시 열립니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- Mobile Native Sharing (KakaoTalk / SMS etc.) -->
+      <button class="btn btn-welaaa-primary" id="btnNativeShare" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.92rem; border-radius: 12px;">
+        <span>📲</span> <span>스마트폰 공유하기 (카카오톡 / 문자 / 에어드롭)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Open Shared Book by Code Modal -->
+  <div class="app-modal-overlay" id="openShareCodeModal" style="display: none;">
+    <div class="app-modal-card" style="max-width: 420px;">
+      <div style="font-size: 2.6rem; margin-bottom: 12px;">🔗</div>
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px; color: var(--text-primary);">공유 도서 열기</h3>
+      <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; word-break: keep-all;">
+        다른 사람에게 전달받은 6자리 공유 코드(예: BW-1234) 또는 공유 링크를 입력하세요.
+      </p>
+
+      <div style="margin-bottom: 16px;">
+        <input type="text" id="inputOpenShareCode" placeholder="예: BW-1234 또는 공유 링크 붙여넣기" class="gate-input" style="width: 100%; font-family: monospace; font-size: 1.1rem; text-align: center; padding: 12px; border-radius: 10px;" autocomplete="off">
+        <div id="openShareError" style="display: none; color: #ef4444; font-size: 0.78rem; font-weight: 700; margin-top: 6px; text-align: center;"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" id="btnCancelOpenShare" style="flex: 1; justify-content: center; padding: 11px;">취소</button>
+        <button class="btn btn-welaaa-primary" id="btnSubmitOpenShare" style="flex: 1.4; justify-content: center; padding: 11px;">
+          <span>도서 바로 열기 ▶</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMessage">알림 내용</span>
+  </div>
+
+  <!-- Scripts: Auth & App Core -->
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/wavebot.js"></script>
+</body>
+</html>

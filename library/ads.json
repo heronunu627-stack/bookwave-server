@@ -1,0 +1,26 @@
+{
+  "active": true,
+  "rotationMode": "sequence",
+  "ads": [
+    {
+      "id": "ad_1",
+      "active": true,
+      "title": "탈로스",
+      "sponsor": "탈로스&연우job",
+      "message": "탈로스에서 풍부한 한끼를",
+      "imageUrl": "/library/ad_banner.png?t=1791329522",
+      "linkUrl": "",
+      "skipSeconds": 5
+    },
+    {
+      "id": "ad_2",
+      "active": true,
+      "title": "북웨이브 프리미엄 멤버십",
+      "sponsor": "bookwave official",
+      "message": "지금 프리미엄으로 업그레이드하고 광고 없이 무제한으로 다운로드하여 감상하세요!",
+      "imageUrl": "",
+      "linkUrl": "#",
+      "skipSeconds": 5
+    }
+  ]
+}

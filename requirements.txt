@@ -1,0 +1,2 @@
+# Bookwave는 파이썬 기본 표준 라이브러리(Standard Library)만으로 동작하므로
+# 별도의 외부 pip 패키지 설치가 필요하지 않습니다.

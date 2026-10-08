@@ -1,0 +1,60 @@
+{
+  "test_progress_user": {
+    "book_sample_01": {
+      "itemId": "book_sample_01",
+      "title": "어린 왕자",
+      "type": "ebook",
+      "format": "docx",
+      "spreadIndex": 7,
+      "totalSpreads": 0,
+      "currentTime": 0.0,
+      "duration": 0.0,
+      "progress": 42.0,
+      "percent": 42.0,
+      "updatedAt": "2026-10-06 13:52:36"
+    },
+    "audio_sample_02": {
+      "itemId": "audio_sample_02",
+      "title": "셜록 홈즈 오디오북",
+      "type": "audiobook",
+      "format": "mp3",
+      "spreadIndex": 0,
+      "totalSpreads": 0,
+      "currentTime": 328.5,
+      "duration": 1800.0,
+      "progress": 18.0,
+      "percent": 18.0,
+      "updatedAt": "2026-10-06 13:52:41"
+    }
+  },
+  "reader": {
+    "book_이상한 가게 연우당 2권 완성본.docx": {
+      "itemId": "book_이상한 가게 연우당 2권 완성본.docx",
+      "title": "이상한 가게 연우당 2권 완성본",
+      "type": "ebook",
+      "format": "docx",
+      "spreadIndex": 0,
+      "totalSpreads": 6,
+      "currentTime": 0.0,
+      "duration": 0.0,
+      "progress": 0.0,
+      "percent": 0.0,
+      "updatedAt": "2026-10-06 17:15:04"
+    }
+  },
+  "연우": {
+    "book_이상한 가게 연우당 2권 완성본.docx": {
+      "itemId": "book_이상한 가게 연우당 2권 완성본.docx",
+      "title": "이상한 가게 연우당 2권 완성본",
+      "type": "ebook",
+      "format": "docx",
+      "spreadIndex": 0,
+      "totalSpreads": 8,
+      "currentTime": 0.0,
+      "duration": 0.0,
+      "progress": 0.0,
+      "percent": 0.0,
+      "updatedAt": "2026-10-06 17:42:28"
+    }
+  }
+}

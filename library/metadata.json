@@ -1,0 +1,15 @@
+{
+  "items": {
+    "book_이상한 가게 연우당 2권 완성본.docx": {
+      "id": "book_이상한 가게 연우당 2권 완성본.docx",
+      "title": "이상한 가게 연우당 2권 완성본",
+      "fileName": "이상한 가게 연우당 2권 완성본.docx",
+      "type": "ebook",
+      "format": "docx",
+      "size": 6667092,
+      "url": "/library/books/%EC%9D%B4%EC%83%81%ED%95%9C%20%EA%B0%80%EA%B2%8C%20%EC%97%B0%EC%9A%B0%EB%8B%B9%202%EA%B6%8C%20%EC%99%84%EC%84%B1%EB%B3%B8.docx",
+      "progress": 0,
+      "createdAt": "2026-10-05 18:45"
+    }
+  }
+}
