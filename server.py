@@ -37,6 +37,7 @@ LIBRARY_DIR = BASE_DIR / "library"
 BOOKS_DIR = LIBRARY_DIR / "books"
 AUDIO_DIR = LIBRARY_DIR / "audio"
 METADATA_FILE = LIBRARY_DIR / "metadata.json"
+DATA_ITEMS_FILE = DATA_DIR / "items.json"
 USERS_FILE = LIBRARY_DIR / "users.json"
 ADS_FILE = LIBRARY_DIR / "ads.json"
 USER_PROGRESS_FILE = LIBRARY_DIR / "user_progress.json"
@@ -301,6 +302,14 @@ def load_metadata():
                 return json.load(f)
         except Exception as e:
             print(f"[Warning] Failed to read metadata.json: {e}")
+    elif DATA_ITEMS_FILE.exists():
+        try:
+            with open(DATA_ITEMS_FILE, "r", encoding="utf-8") as f:
+                d = json.load(f)
+                items_dict = {i["id"]: i for i in d.get("items", []) if "id" in i}
+                return {"items": items_dict}
+        except Exception as e:
+            print(f"[Warning] Failed to read data/items.json fallback: {e}")
     return {"items": {}}
 
 
@@ -310,6 +319,14 @@ def save_metadata(data):
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"[Error] Failed to save metadata: {e}")
+
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        items_list = list(data.get("items", {}).values())
+        with open(DATA_ITEMS_FILE, "w", encoding="utf-8") as f:
+            json.dump({"items": items_list}, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[Warning] Failed to export data/items.json: {e}")
 
 
 def load_ads():
@@ -492,9 +509,16 @@ def save_emergency(data):
 def load_users():
     default_users = get_default_users()
     deleted_users = load_deleted_users()
+
+    users_file_to_read = None
     if USERS_FILE.exists():
+        users_file_to_read = USERS_FILE
+    elif DATA_USERS_FILE.exists():
+        users_file_to_read = DATA_USERS_FILE
+
+    if users_file_to_read:
         try:
-            with open(USERS_FILE, "r", encoding="utf-8") as f:
+            with open(users_file_to_read, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 users_list = data.get("users", [])
                 # Filter out any tombstoned deleted users
@@ -511,13 +535,13 @@ def load_users():
                         u["passwordHash"] = hashlib.sha256(u.get("password", "1234").encode("utf-8")).hexdigest()
                         modified = True
                 data["users"] = filtered_list
-                if modified:
+                if modified or users_file_to_read != USERS_FILE:
                     save_users(data)
                 return data
         except Exception as e:
             print(f"[Warning] Failed to read users.json: {e}")
 
-    # Initialize only if USERS_FILE never existed, omitting tombstoned users
+    # Initialize only if neither USERS_FILE nor DATA_USERS_FILE existed, omitting tombstoned users
     filtered_defaults = [u for u in default_users.get("users", []) if u.get("username", "").strip().lower() not in deleted_users]
     init_data = {"users": filtered_defaults}
     save_users(init_data)
@@ -1913,7 +1937,47 @@ def open_browser_delayed(url):
     webbrowser.open(url)
 
 
+# AUTO-EMBEDDED DEPLOYMENT ASSETS (Single-File Self-Extractor)
+EMBEDDED_BUNDLE_B64 = ""
+
+
+def extract_update_bundle():
+    for zname in ["server_deploy.zip", "bookwave_bundle.zip", "bookwave_all_in_one.zip"]:
+        zp = BASE_DIR / zname
+        if zp.exists():
+            try:
+                with zipfile.ZipFile(zp, "r") as z:
+                    for member in z.infolist():
+                        target = BASE_DIR / member.filename
+                        if target.exists() and member.filename in (
+                            "library/users.json", "library/metadata.json", "library/ads.json",
+                            "library/tiers.json", "data/users.json", "data/items.json",
+                            "data/tiers.json", "library/deleted_users.json"
+                        ):
+                            continue
+                        z.extract(member, BASE_DIR)
+            except Exception as e:
+                print(f"[Warning] Failed to unpack {zname}: {e}")
+
+    if EMBEDDED_BUNDLE_B64:
+        try:
+            raw = base64.b64decode(EMBEDDED_BUNDLE_B64)
+            with zipfile.ZipFile(io.BytesIO(raw), "r") as z:
+                for member in z.infolist():
+                    target = BASE_DIR / member.filename
+                    if target.exists() and member.filename in (
+                        "library/users.json", "library/metadata.json", "library/ads.json",
+                        "library/tiers.json", "data/users.json", "data/items.json",
+                        "data/tiers.json", "library/deleted_users.json"
+                    ):
+                        continue
+                    z.extract(member, BASE_DIR)
+        except Exception as e:
+            print(f"[Warning] Failed to unpack embedded bundle: {e}")
+
+
 def main():
+    extract_update_bundle()
     global CURRENT_SERVER_PORT
     sync_library()
     env_port = os.environ.get("PORT")
