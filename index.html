@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>누누</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="theme-color" content="#0ea5e9">
+  <meta name="description" content="누누(nunu) - 실시간 5대 포털 검색 및 AI 스마트 포털">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Outfit:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css?v=20261022_final">
+</head>
+<body class="theme-light">
+  <!-- 크롬 멀티 탭 & 내비게이션 바 (Chrome-style Multi-Tab Interface) -->
+  <div class="chrome-browser-shell">
+    <!-- 크롬 탭 바 -->
+    <div class="chrome-tab-strip-wrapper">
+      <button type="button" class="nunusky-brand-badge btn-new-window-badge" id="topBrandBadge" title="누누 포털 홈">
+        <i class="fa-solid fa-compass"></i> <span>누누</span>
+      </button>
+      <div class="chrome-tab-strip" id="chromeTabStrip">
+        <!-- JS로 동적 생성되는 탭들 -->
+      </div>
+      <button type="button" class="chrome-new-tab-btn" id="chromeNewTabBtn" title="새 탭 열기 (+)">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+    </div>
+
+    <!-- 크롬 주소창 & 내비게이션 툴바 -->
+    <div class="chrome-toolbar">
+      <div class="chrome-nav-buttons">
+        <button type="button" class="chrome-tool-btn" id="btnBrowserBack" title="뒤로 가기">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <button type="button" class="chrome-tool-btn" id="btnBrowserForward" title="앞으로 가기">
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <button type="button" class="chrome-tool-btn" id="btnBrowserReload" title="새로고침">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button type="button" class="chrome-tool-btn" id="btnBrowserHome" title="nunu 포털 홈">
+          <i class="fa-solid fa-house"></i>
+        </button>
+      </div>
+
+      <div class="chrome-omnibox">
+        <i class="fa-solid fa-lock omnibox-security-icon" id="omniboxSecurityIcon" title="보안 연결"></i>
+        <input type="text" id="browserUrlInput" placeholder="이동할 웹사이트 주소 또는 검색어를 입력하세요" autocomplete="off">
+        <button type="button" id="clearBrowserUrlBtn" class="browser-clear-btn" style="display: none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <button type="button" id="btnGoBrowserUrl" class="btn-go-url">
+        <span>이동</span> <i class="fa-solid fa-arrow-right"></i>
+      </button>
+      <a href="/download/nunusky" id="btnDownloadApp" class="btn-install-nunusky btn-download-app-pill app-download-only-web" style="text-decoration:none; background: linear-gradient(135deg, #10b981, #059669);" title="누누스카이 PC 앱 단일 실행 파일 다운로드" download="nunuSky_Setup.exe">
+        <i class="fa-solid fa-download"></i> <span>누누스카이 앱 다운로드</span>
+      </a>
+      <button type="button" id="btnToggleSideAi" class="btn-side-ai-toggle app-only-feature" title="화면을 보며 대화하는 AI Chat 열기" style="display: none;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Chat</span>
+      </button>
+
+      <!-- [사용자 요청 신규 기능] 크롬 액션 툴바 (⭐ 북마크, 🧩 확장프로그램, | 구분선, 🔵 연우 프로필, ⋮ 더보기 메뉴) -->
+      <div class="chrome-actions-bar" id="chromeActionsBar">
+        <!-- 1. ⭐ 북마크 버튼 -->
+        <button type="button" class="chrome-action-btn" id="btnBrowserBookmark" title="이 페이지를 북마크에 추가 (Ctrl+D)">
+          <i class="fa-regular fa-star" id="browserBookmarkStarIcon"></i>
+        </button>
+
+        <!-- 2. 🧩 확장 프로그램 버튼 -->
+        <button type="button" class="chrome-action-btn" id="btnBrowserExtensions" title="확장 프로그램">
+          <i class="fa-solid fa-puzzle-piece"></i>
+        </button>
+
+        <!-- 3. | 세로 구분선 -->
+        <span class="chrome-toolbar-divider"></span>
+
+        <!-- 4. 🔵 연우 프로필 아바타 버튼 -->
+        <button type="button" class="chrome-profile-btn" id="btnBrowserProfile" title="nunu 프로필 (연우)">
+          <span class="avatar-text" id="browserProfileAvatarText">연우</span>
+        </button>
+
+        <!-- 5. ⋮ 더보기 메뉴 버튼 -->
+        <button type="button" class="chrome-action-btn" id="btnBrowserMenu" title="누누스카이 맞춤설정 및 제어">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+
+        <!-- [팝업 1] ⭐ 북마크 추가/관리 팝업 -->
+        <div class="chrome-action-popup" id="bookmarkPopup" style="display: none;">
+          <div class="popup-header">
+            <h4><i class="fa-solid fa-star text-warning" style="color: #f59e0b;"></i> 북마크 추가됨</h4>
+            <button type="button" class="popup-close-btn" id="btnCloseBookmarkPopup"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="popup-body">
+            <div class="popup-form-group">
+              <label for="popupBookmarkTitle">이름</label>
+              <input type="text" id="popupBookmarkTitle" value="누누(nunu) - 대한민국 1등 스마트 포털">
+            </div>
+            <div class="popup-form-group">
+              <label for="popupBookmarkFolder">폴더</label>
+              <select id="popupBookmarkFolder">
+                <option value="bar">북마크 바</option>
+                <option value="other">기타 북마크</option>
+                <option value="work">업무 / 학습</option>
+              </select>
+            </div>
+            <div class="popup-actions">
+              <button type="button" class="btn-popup-secondary" id="btnRemoveBookmark">삭제</button>
+              <button type="button" class="btn-popup-primary" id="btnSaveBookmarkPopup">완료</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- [팝업 2] 🧩 확장 프로그램 팝업 -->
+        <div class="chrome-action-popup" id="extensionsPopup" style="display: none;">
+          <div class="popup-header">
+            <h4><i class="fa-solid fa-puzzle-piece" style="color: #0288d1;"></i> 확장 프로그램</h4>
+            <button type="button" class="popup-close-btn" id="btnCloseExtensionsPopup"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="popup-list">
+            <div class="popup-list-item" id="extItemNightMode">
+              <div class="item-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-moon"></i></div>
+              <div class="item-content">
+                <div class="item-title">Night Eye (다크모드 전환)</div>
+                <div class="item-desc">모든 웹사이트에 눈이 편안한 야간 다크모드 적용</div>
+              </div>
+              <label class="item-switch">
+                <input type="checkbox" id="extToggleNightMode">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="popup-list-item" id="extItemAdBlock">
+              <div class="item-icon" style="background:#fee2e2; color:#ef4444;"><i class="fa-solid fa-shield-halved"></i></div>
+              <div class="item-content">
+                <div class="item-title">nunu AdBlocker Pro</div>
+                <div class="item-desc">악성 광고 및 팝업 자동 차단 보호</div>
+              </div>
+              <label class="item-switch">
+                <input type="checkbox" id="extToggleAdBlock" checked>
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="popup-list-item" id="extItemTranslate">
+              <div class="item-icon" style="background:#e0e7ff; color:#4f46e5;"><i class="fa-solid fa-language"></i></div>
+              <div class="item-content">
+                <div class="item-title">웹페이지 원클릭 번역기</div>
+                <div class="item-desc">영문/일문 페이지를 자연스러운 한국어로 즉시 번역</div>
+              </div>
+              <button type="button" class="btn-item-run" id="btnRunTranslate">번역</button>
+            </div>
+            <div class="popup-list-item" id="extItemCapture">
+              <div class="item-icon" style="background:#dcfce7; color:#10b981;"><i class="fa-solid fa-camera"></i></div>
+              <div class="item-content">
+                <div class="item-title">스마트 웹 화면 캡처</div>
+                <div class="item-desc">현재 페이지 영역을 이미지 파일로 저장</div>
+              </div>
+              <button type="button" class="btn-item-run" id="btnRunCapture">캡처</button>
+            </div>
+            <div class="popup-list-item" id="extItemMemo">
+              <div class="item-icon" style="background:#f3e8ff; color:#9333ea;"><i class="fa-solid fa-pen-to-square"></i></div>
+              <div class="item-content">
+                <div class="item-title">퀵 사이드 메모장</div>
+                <div class="item-desc">웹 서핑 중 중요한 아이디어를 즉시 기록</div>
+              </div>
+              <button type="button" class="btn-item-run" id="btnRunMemo">열기</button>
+            </div>
+          </div>
+          <div class="popup-footer">
+            <button type="button" class="btn-popup-footer" id="btnManageExtensions"><i class="fa-solid fa-gear"></i> 확장 프로그램 관리</button>
+          </div>
+        </div>
+
+        <!-- [팝업 3] 🔵 연우 프로필 팝업 -->
+        <div class="chrome-action-popup profile-popup" id="profilePopup" style="display: none;">
+          <div class="profile-popup-card">
+            <div class="profile-avatar-circle-large" id="popupProfileAvatar">연우</div>
+            <div class="profile-name-row">
+              <span class="profile-name" id="popupProfileName">누누용 (연우)</span>
+              <span class="profile-badge-pro">PRO</span>
+            </div>
+            <div class="profile-email" id="popupProfileEmail">yeonwoo@nunu.com</div>
+            <div class="profile-sync-status">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: #10b981;"></i> nunu 계정 동기화 사용 중
+            </div>
+          </div>
+          <div class="profile-stats-row">
+            <div class="profile-stat-item">
+              <span class="stat-num" id="popupProfileCredits">50</span>
+              <span class="stat-label">보유 크레딧</span>
+            </div>
+            <div class="profile-stat-item">
+              <span class="stat-num">무제한</span>
+              <span class="stat-label">AI 요약</span>
+            </div>
+          </div>
+          <div class="profile-popup-menu">
+            <div class="menu-label">프로필 빠른 전환</div>
+            <div class="profile-switch-row">
+              <button type="button" class="btn-profile-switch active" data-user="누누용"><span class="avatar-sm" style="background:#0288d1;">연우</span> 연우(기본)</button>
+              <button type="button" class="btn-profile-switch" data-user="김테스트"><span class="avatar-sm" style="background:#10b981;">테스트</span> 김테스트</button>
+              <button type="button" class="btn-profile-switch" data-user="admin"><span class="avatar-sm" style="background:#6366f1;">관리자</span> 관리자</button>
+            </div>
+            <hr class="popup-divider">
+            <button type="button" class="popup-menu-item" id="btnProfileOpenSettings"><i class="fa-solid fa-gear"></i> 계정 및 보안 설정</button>
+            <button type="button" class="popup-menu-item" id="btnProfileSyncSettings"><i class="fa-solid fa-arrows-rotate"></i> 지금 즉시 클라우드 동기화</button>
+            <button type="button" class="popup-menu-item text-danger" id="btnProfileLogout" style="color: #ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃</button>
+          </div>
+        </div>
+
+        <!-- [팝업 4] ⋮ 크롬 풀 메뉴 팝업 -->
+        <div class="chrome-action-popup menu-popup" id="browserMenuPopup" style="display: none;">
+          <div class="browser-menu-list">
+            <button type="button" class="menu-action-item" id="menuNewTab">
+              <span class="menu-action-left"><i class="fa-solid fa-plus"></i> 새 탭</span>
+              <span class="menu-shortcut">Ctrl+T</span>
+            </button>
+            <button type="button" class="menu-action-item" id="menuNewWindow">
+              <span class="menu-action-left"><i class="fa-regular fa-window-restore"></i> 새 창</span>
+              <span class="menu-shortcut">Ctrl+N</span>
+            </button>
+            <button type="button" class="menu-action-item" id="menuIncognito">
+              <span class="menu-action-left"><i class="fa-solid fa-user-secret"></i> 새 시크릿 창</span>
+              <span class="menu-shortcut">Ctrl+Shift+N</span>
+            </button>
+            <hr class="popup-divider">
+            <button type="button" class="menu-action-item" id="menuBookmarks">
+              <span class="menu-action-left"><i class="fa-regular fa-star"></i> 북마크 목록 보기</span>
+              <span class="menu-shortcut">Ctrl+Shift+O</span>
+            </button>
+            <button type="button" class="menu-action-item" id="menuHistory">
+              <span class="menu-action-left"><i class="fa-solid fa-clock-rotate-left"></i> 방문 기록</span>
+              <span class="menu-shortcut">Ctrl+H</span>
+            </button>
+            <button type="button" class="menu-action-item" id="menuDownloads">
+              <span class="menu-action-left"><i class="fa-solid fa-download"></i> 다운로드 (앱 설치)</span>
+              <span class="menu-shortcut">Ctrl+J</span>
+            </button>
+            <hr class="popup-divider">
+            <!-- 확대/축소 컨트롤러 -->
+            <div class="menu-zoom-row">
+              <span class="zoom-label"><i class="fa-solid fa-magnifying-glass"></i> 글자 확대/축소</span>
+              <div class="zoom-controls">
+                <button type="button" class="btn-zoom-step" id="btnZoomOut" title="축소"><i class="fa-solid fa-minus"></i></button>
+                <span class="zoom-value" id="currentZoomLevel">100%</span>
+                <button type="button" class="btn-zoom-step" id="btnZoomIn" title="확대"><i class="fa-solid fa-plus"></i></button>
+                <button type="button" class="btn-zoom-fullscreen" id="btnFullscreen" title="전체 화면 (F11)"><i class="fa-solid fa-expand"></i></button>
+              </div>
+            </div>
+            <hr class="popup-divider">
+            <button type="button" class="menu-action-item" id="menuPrint">
+              <span class="menu-action-left"><i class="fa-solid fa-print"></i> 인쇄...</span>
+              <span class="menu-shortcut">Ctrl+P</span>
+            </button>
+            <button type="button" class="menu-action-item" id="menuSettings">
+              <span class="menu-action-left"><i class="fa-solid fa-gear"></i> 브라우저 설정</span>
+            </button>
+            <button type="button" class="menu-action-item" id="menuAbout">
+              <span class="menu-action-left"><i class="fa-solid fa-circle-info"></i> 누누스카이 정보</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- nunu 포털 홈 뷰 컨테이너 -->
+  <div id="portalHomeWrapper" class="portal-home-wrapper">
+  <!-- 상단 글로벌 바 (GNB) -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="date-time-box">
+        <span id="currentDate" class="nav-date"></span>
+        <span id="currentTime" class="nav-time"></span>
+      </div>
+      <nav class="quick-nav-links">
+        <a href="#news" class="active"><i class="fa-regular fa-newspaper"></i> 뉴스</a>
+        <a href="#stock"><i class="fa-solid fa-chart-line"></i> 증시</a>
+        <a href="#weather"><i class="fa-solid fa-cloud-sun"></i> 날씨</a>
+        <button id="btnLaunchBookwaveNav" class="nav-bookwave-pill" title="북웨이브 오디오북 & 전자책 열기">
+          <i class="fa-solid fa-headphones"></i> <span>북웨이브</span>
+          <span class="pill-badge">오디오북</span>
+        </button>
+        <a href="diary.html" class="nav-diary-pill" title="nunu AI 글방 (일기·독서록 맞춤법 & AI 코칭)">
+          <i class="fa-solid fa-pen-nib"></i> <span>AI 글방</span>
+          <span class="pill-badge">일기·독서록</span>
+        </a>
+        <a href="ai.html" class="nav-ai-pill" title="nunu AI Pro 창작 스튜디오 열기">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>nunu AI Pro</span>
+          <span class="pill-badge">초고지능</span>
+        </a>
+        <a href="mail.html" class="nav-mail-pill" id="btnNavMail" title="nunu 메일 & 문자 센터 열기">
+          <i class="fa-solid fa-envelope"></i> <span>nunu 메일</span>
+          <span class="pill-badge mail-badge-unread" id="navMailBadge" style="display: none;">0</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+      <div class="trending-ticker" id="trendingTicker">
+        <span class="ticker-badge">실시간 이슈</span>
+        <span class="ticker-rank" id="tickerRank">1</span>
+        <span class="ticker-text" id="tickerText">가을 단풍 절정 명소</span>
+        <i class="fa-solid fa-chevron-down ticker-toggle-btn" id="tickerToggleBtn" title="전체 순위 보기"></i>
+
+        <!-- 실시간 검색어 전체 펼침 레이어 -->
+        <div class="trending-dropdown" id="trendingDropdown">
+          <div class="trending-header">
+            <h4>실시간 급상승 검색어</h4>
+            <span class="trending-update-time" id="trendingUpdateTime">방금 갱신</span>
+          </div>
+          <ol class="trending-list" id="trendingList">
+            <!-- JS로 동적 생성 -->
+          </ol>
+        </div>
+      </div>
+
+      <button id="deviceConnectBtn" class="icon-btn" title="스마트폰/다른 기기 접속 주소 보기">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </button>
+
+      <button id="themeToggleBtn" class="icon-btn" title="다크 모드 전환">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+
+      <button id="userLoginBtn" class="btn-login-header">
+        <i class="fa-regular fa-user"></i> <span>로그인</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <main class="main-container">
+    <!-- 로고 & 검색창 섹션 -->
+    <section class="search-section">
+      <div class="logo-wrapper">
+        <h1 class="nunu-logo" id="homeLogo">
+          <span class="logo-letter n1">n</span><span class="logo-letter u1">u</span><span class="logo-letter n2">n</span><span class="logo-letter u2">u</span>
+          <span class="logo-dot"></span>
+        </h1>
+        <p class="logo-tagline">세상의 모든 정보를 한눈에, 누누 포털</p>
+      </div>
+
+      <!-- 양옆 날개형 사이드 광고와 중앙 검색창 래퍼 -->
+      <div class="search-hero-row">
+        <!-- 왼쪽 광고 슬롯 (동그라미 친 곳) -->
+        <aside id="homeAdWingLeft" class="home-ad-wing wing-left" style="display: none;"></aside>
+
+        <!-- 중앙 검색창 바 (nunu 단일 통합 검색) -->
+        <div class="search-bar-wrapper">
+          <div class="search-bar" id="searchBar">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="searchInput" placeholder="궁금한 것을 nunu에서 검색해보세요 (예: 파이썬, 오늘의 뉴스, 북웨이브 등)" autocomplete="off">
+            <button type="button" id="clearSearchBtn" class="clear-btn" style="display: none;"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" id="voiceSearchBtn" class="voice-btn" title="음성 검색"><i class="fa-solid fa-microphone"></i></button>
+            <button type="button" id="submitSearchBtn" class="submit-search-btn">nunu 검색</button>
+          </div>
+        </div>
+
+        <!-- 오른쪽 광고 슬롯 (동그라미 친 곳) -->
+        <aside id="homeAdWingRight" class="home-ad-wing wing-right" style="display: none;"></aside>
+      </div>
+
+      <!-- nunu 부가 서비스 허브 (네이버 스타일의 서비스 바로가기 공간) -->
+      <div class="nunu-services-hub">
+        <div class="services-hub-header">
+          <span class="hub-title"><i class="fa-solid fa-grip" style="color: var(--primary-color);"></i> nunu 서비스</span>
+          <span class="hub-subtitle">nunu의 다양한 부가 서비스를 한눈에 만나보세요</span>
+        </div>
+        <div class="services-grid services-grid-three" id="servicesGrid">
+          <!-- 북웨이브 (1순위 메인 추천 서비스) -->
+          <a href="https://bookwave-server.onrender.com" target="_blank" class="service-item highlight-service" title="북웨이브 오디오북 & 전자책 플레이어 열기">
+            <div class="service-icon-box bw-icon">
+              <i class="fa-solid fa-headphones"></i>
+              <span class="service-badge-hot">HOT</span>
+            </div>
+            <div class="service-info">
+              <strong class="service-name">북웨이브 (Bookwave)</strong>
+              <span class="service-desc">오디오북 스트리밍 & EPUB 전자책 리더</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square service-arrow"></i>
+          </a>
+
+          <!-- nunu AI Pro (초고지능 창작 스튜디오) -->
+          <a href="ai.html" class="service-item highlight-ai" id="openNunuAiBtn" title="nunu AI Pro 창작 스튜디오 열기">
+            <div class="service-icon-box ai-icon">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span class="service-badge-new">PRO</span>
+            </div>
+            <div class="service-info">
+              <strong class="service-name">nunu AI Pro (창작 스튜디오)</strong>
+              <span class="service-desc">음악 작곡 · 번역 · 작문 · 이미지 창작</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square service-arrow"></i>
+          </a>
+
+          <!-- nunu 메일 (스마트 웹메일 & 문자 센터) -->
+          <a href="mail.html" class="service-item highlight-mail" id="openNunuMailBtn" title="nunu 메일 & 문자 센터 열기">
+            <div class="service-icon-box mail-icon">
+              <i class="fa-solid fa-envelope-open-text"></i>
+              <span class="service-badge-new">NEW</span>
+            </div>
+            <div class="service-info">
+              <strong class="service-name">nunu 메일 (웹메일 & 문자)</strong>
+              <span class="service-desc">___@nunu.com 회원 전용 실시간 웹메일 & 문자</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square service-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- 빠른 바로가기 북마크 바 -->
+      <div class="quick-bookmarks-container">
+        <div class="quick-bookmarks" id="quickBookmarks">
+          <!-- JS로 동적 생성 -->
+        </div>
+        <button id="addBookmarkBtn" class="add-bookmark-btn" title="새 바로가기 추가">
+          <i class="fa-solid fa-plus"></i> 바로가기 추가
+        </button>
+      </div>
+    </section>
+
+    <!-- nunu 검색 결과 전용 화면 -->
+    <div class="search-modal" id="searchModal" style="display: none;">
+      <div class="search-modal-content">
+        <div class="search-modal-header">
+          <div class="modal-header-left">
+            <span class="search-result-logo">nunu</span>
+            <h3>"<span id="modalQuery"></span>" 검색 결과</h3>
+          </div>
+          <button class="close-modal-btn" id="closeSearchModalBtn" title="닫기"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="search-modal-body" id="modalResultsBody">
+          <!-- nunu 검색 결과 카드들이 동적으로 생성됩니다 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 메인 대시보드 그리드 레이아웃 -->
+    <div class="portal-grid">
+      <!-- 좌측: 뉴스, 트렌드, 콘텐츠 -->
+      <div class="grid-main-column">
+        <!-- 뉴스 스탠드 카드 -->
+        <article class="portal-card news-card" id="news">
+          <div class="card-header">
+            <div class="header-left">
+              <span class="card-badge news-badge"><i class="fa-solid fa-bolt"></i> 헤드라인</span>
+              <h3>오늘의 주요 뉴스</h3>
+            </div>
+            <div class="news-category-tabs" id="newsTabs">
+              <button class="tab-btn active" data-cat="all">종합</button>
+              <button class="tab-btn" data-cat="tech">IT/과학</button>
+              <button class="tab-btn" data-cat="economy">경제</button>
+              <button class="tab-btn" data-cat="life">사회/문화</button>
+              <button class="tab-btn" data-cat="sports">스포츠</button>
+            </div>
+          </div>
+          <div class="news-headline-banner" id="newsHeadlineBanner">
+            <div class="headline-image" id="headlineImg" style="background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=60');">
+              <span class="breaking-badge">속보</span>
+            </div>
+            <div class="headline-content">
+              <h4 id="headlineTitle">글로벌 테크 기업들, 차세대 인공지능 혁신 모델 대거 공개</h4>
+              <p id="headlineDesc">사람 수준의 정밀한 추론 및 다국어 실시간 번역 기능을 갖춘 최신 초거대 AI 모델들이 잇달아 발표되며 글로벌 산업 전반에 큰 변화가 예고되고 있습니다.</p>
+              <span class="news-meta">연합뉴스 · 방금 전</span>
+            </div>
+          </div>
+          <ul class="news-item-list" id="newsItemList">
+            <!-- JS 동적 로딩 -->
+          </ul>
+        </article>
+
+        <!-- 북웨이브 (bookwave) 프로젝트 연동 스페셜 배너 -->
+        <article class="portal-card bookwave-banner-card">
+          <div class="bookwave-banner-left">
+            <div class="bookwave-icon-box">
+              <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+            <div class="bookwave-text-box">
+              <div class="bookwave-badge-row">
+                <span class="badge-bw-hot">추천 서비스</span>
+                <span class="badge-bw-tech"><i class="fa-solid fa-circle-play"></i> 오디오북 & EPUB 리더</span>
+              </div>
+              <h4>북웨이브 (Bookwave)</h4>
+              <p>풍부한 오디오북 음원 스트리밍과 전자책 뷰어를 nunu 포털에서 즉시 감상해보세요.</p>
+            </div>
+          </div>
+          <button id="btnLaunchBookwaveMain" class="btn-bookwave-action">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>북웨이브 열기</span>
+          </button>
+        </article>
+
+        <!-- nunu AI 스마트 어시스턴트 카드 -->
+        <article class="portal-card nunu-ai-card" id="nunuAiSection">
+          <div class="ai-card-glow-bg"></div>
+          <div class="card-header ai-card-header">
+            <div class="header-left">
+              <span class="card-badge ai-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> nunu AI</span>
+              <h3>스마트 AI 어시스턴트</h3>
+            </div>
+            <span class="ai-online-badge"><span class="pulse-dot"></span> 준비 완료</span>
+          </div>
+          <div class="ai-card-body">
+            <p class="ai-card-desc">궁금한 점, 글 요약, 북웨이브 도서 추천, 번역까지 nunu AI에게 물어보세요!</p>
+            <div class="ai-input-bar">
+              <i class="fa-solid fa-sparkles ai-input-icon"></i>
+              <input type="text" id="aiQuickInput" placeholder="nunu AI에게 무엇이든 질문해보세요..." autocomplete="off">
+              <button id="aiQuickSendBtn" class="ai-send-btn" title="AI에게 질문"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+            <div class="ai-prompt-tags">
+              <span class="prompt-tag-label">추천 질문:</span>
+              <button class="ai-tag-pill" data-prompt="북웨이브 서비스에 대해 알려줘">📚 북웨이브 소개</button>
+              <button class="ai-tag-pill" data-prompt="오늘의 주요 IT 테크 뉴스 요약해줘">⚡ IT 뉴스 요약</button>
+              <button class="ai-tag-pill" data-prompt="오늘 날씨에 어울리는 추천 도서는?">📖 날씨별 책 추천</button>
+              <button class="ai-tag-pill" data-prompt="파이썬으로 간단한 웹서버 띄우는 법 알려줘">💻 파이썬 코딩 팁</button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- 우측: 사이드바 위젯 (로그인, 날씨, 증시, 메모) -->
+      <aside class="grid-side-column">
+        <!-- 사용자 미니 프로필 위젯 -->
+        <div class="portal-card user-widget" id="userWidget">
+          <div class="user-logged-out" id="loggedOutView">
+            <div class="login-greeting">
+              <h4>nunu에 오신 것을 환영합니다!</h4>
+              <p>더 편리하고 개인화된 포털 서비스를 만나보세요.</p>
+            </div>
+            <button id="widgetLoginBtn" class="btn-primary-block"><i class="fa-solid fa-arrow-right-to-bracket"></i> nunu 로그인</button>
+            <div class="login-sub-links">
+              <a href="#" id="findIdBtn">아이디 찾기</a>
+              <span>·</span>
+              <a href="#" id="findPwBtn">비밀번호 찾기</a>
+              <span>·</span>
+              <a href="#" id="signUpBtn">회원가입</a>
+            </div>
+          </div>
+          <div class="user-logged-in" id="loggedInView" style="display: none;">
+            <div class="profile-header">
+              <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
+              <div class="profile-info">
+                <strong id="userName">방문자 님</strong>
+                <span class="user-email" id="userEmail">user@nunu.com</span>
+              </div>
+              <button id="logoutBtn" class="icon-subtle-btn" title="로그아웃"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+            <div class="user-quick-stats">
+              <a href="mail.html" class="stat-item stat-link" id="userMailStatBox" title="nunu 메일함 바로가기">
+                <i class="fa-solid fa-envelope" style="color: #4f46e5;"></i>
+                <span class="stat-label">nunu 메일</span>
+                <strong class="stat-value highlight" id="userMailUnreadCount">0</strong>
+              </a>
+              <div class="stat-item">
+                <i class="fa-regular fa-bell"></i>
+                <span class="stat-label">새 알림</span>
+                <strong class="stat-value">5</strong>
+              </div>
+              <div class="stat-item">
+                <i class="fa-solid fa-coins"></i>
+                <span class="stat-label">nunu 포인트</span>
+                <strong class="stat-value">1,250P</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 실시간 날씨 위젯 -->
+        <div class="portal-card weather-widget" id="weather">
+          <div class="card-header">
+            <div class="header-left">
+              <i class="fa-solid fa-location-dot" style="color: #4f46e5;"></i>
+              <strong id="weatherLocation">서울특별시 중구</strong>
+            </div>
+            <button class="icon-subtle-btn" id="changeLocationBtn" title="위치 변경"><i class="fa-solid fa-ellipsis"></i></button>
+          </div>
+          <div class="weather-main-body">
+            <div class="weather-now">
+              <div class="weather-icon-large" id="weatherIcon"><i class="fa-solid fa-cloud-sun"></i></div>
+              <div class="temp-display">
+                <span class="current-temp" id="currentTemp">21.5°</span>
+                <span class="weather-desc" id="weatherDesc">구름 조금 · 쾌적함</span>
+              </div>
+            </div>
+            <div class="weather-details">
+              <div class="detail-row">
+                <span>체감 온도</span>
+                <strong id="feelsLikeTemp">22.0°</strong>
+              </div>
+              <div class="detail-row">
+                <span>미세먼지</span>
+                <strong class="badge-air-good" id="pm10">좋음 (18㎍/㎥)</strong>
+              </div>
+              <div class="detail-row">
+                <span>습도 / 바람</span>
+                <strong id="humidityWind">45% / 1.8m/s</strong>
+              </div>
+            </div>
+          </div>
+          <div class="weekly-forecast" id="weeklyForecast">
+            <!-- 5일 예보 -->
+          </div>
+        </div>
+
+        <!-- 금융 & 증시 위젯 -->
+        <div class="portal-card stock-widget" id="stock">
+          <div class="card-header">
+            <div class="header-left">
+              <span class="card-badge stock-badge"><i class="fa-solid fa-chart-line"></i> 금융</span>
+              <h3>증시 & 환율</h3>
+            </div>
+            <span class="stock-status-badge live">실시간</span>
+          </div>
+          <div class="stock-tabs" id="stockTabs">
+            <button class="stock-tab-btn active" data-market="kospi">코스피</button>
+            <button class="stock-tab-btn" data-market="kosdaq">코스닥</button>
+            <button class="stock-tab-btn" data-market="usd">환율(USD)</button>
+          </div>
+          <div class="stock-display" id="stockDisplay">
+            <div class="stock-value-wrapper">
+              <span class="stock-price" id="stockPrice">2,654.30</span>
+              <span class="stock-change change-up" id="stockChange">+18.52 (+0.70%)</span>
+            </div>
+            <div class="mini-chart-canvas-box">
+              <svg viewBox="0 0 280 60" class="mini-chart-svg" id="miniChartSvg">
+                <path d="M 0 45 Q 40 50, 70 35 T 140 28 T 210 20 T 280 10" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 오늘 할 일 & 퀵 메모 위젯 -->
+        <div class="portal-card todo-widget">
+          <div class="card-header">
+            <div class="header-left">
+              <span class="card-badge memo-badge"><i class="fa-solid fa-square-check"></i> 나의 메모</span>
+              <h3>오늘의 할 일</h3>
+            </div>
+            <span class="todo-counter" id="todoCounter">0/0</span>
+          </div>
+          <div class="todo-input-box">
+            <input type="text" id="newTodoInput" placeholder="새로운 할 일을 입력하고 엔터..." maxlength="50">
+            <button id="addTodoBtn"><i class="fa-solid fa-plus"></i></button>
+          </div>
+          <ul class="todo-list" id="todoList">
+            <!-- JS 동적 렌더링 -->
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- 새 바로가기 추가 모달 -->
+  <div class="custom-modal" id="addBookmarkModal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-title-bar">
+        <h4>새 바로가기 추가</h4>
+        <button class="modal-close-icon" id="closeBookmarkModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-form">
+        <label>사이트 이름</label>
+        <input type="text" id="bmNameInput" placeholder="예: 깃허브, 노션">
+        <label>URL 주소</label>
+        <input type="text" id="bmUrlInput" placeholder="https://example.com">
+        <label>아이콘 색상 / 이모지</label>
+        <div class="color-picker-row">
+          <button class="color-dot active" style="background: #4f46e5;" data-color="#4f46e5"></button>
+          <button class="color-dot" style="background: #06b6d4;" data-color="#06b6d4"></button>
+          <button class="color-dot" style="background: #10b981;" data-color="#10b981"></button>
+          <button class="color-dot" style="background: #f59e0b;" data-color="#f59e0b"></button>
+          <button class="color-dot" style="background: #ef4444;" data-color="#ef4444"></button>
+          <button class="color-dot" style="background: #ec4899;" data-color="#ec4899"></button>
+        </div>
+        <div class="modal-actions">
+          <button id="cancelBookmarkBtn" class="btn-secondary">취소</button>
+          <button id="saveBookmarkBtn" class="btn-primary">추가하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 로그인 모달 -->
+  <div class="custom-modal" id="loginModal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-title-bar">
+        <h4><i class="fa-solid fa-lock" style="color: var(--primary-color);"></i> nunu 로그인</h4>
+        <button class="modal-close-icon" id="closeLoginModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form class="modal-form" id="loginForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="loginIdInput">아이디 또는 이메일</label>
+          <input type="text" id="loginIdInput" placeholder="아이디 또는 이메일 입력" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="loginPwInput">비밀번호</label>
+          <input type="password" id="loginPwInput" placeholder="비밀번호 입력" autocomplete="current-password">
+        </div>
+        <div class="auth-msg error-msg" id="loginErrorMsg" style="display: none;"></div>
+        <div class="modal-actions" style="margin-top: 8px;">
+          <button type="submit" id="doLoginBtn" class="btn-primary" style="width: 100%;">로그인</button>
+        </div>
+        <div class="auth-switch-links">
+          <span>계정이 없으신가요?</span>
+          <a href="#" id="switchToSignupBtn">회원가입하기</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 회원가입 모달 -->
+  <div class="custom-modal" id="signupModal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-title-bar">
+        <h4><i class="fa-solid fa-user-plus" style="color: var(--primary-color);"></i> nunu 회원가입</h4>
+        <button class="modal-close-icon" id="closeSignupModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form class="modal-form" id="signupForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="signupIdInput">아이디</label>
+          <div class="input-with-btn">
+            <input type="text" id="signupIdInput" placeholder="4자 이상 영문/숫자" autocomplete="username">
+            <button type="button" id="checkIdDupBtn" class="btn-subtle-action">중복확인</button>
+          </div>
+          <span class="input-hint" id="idCheckHint"></span>
+        </div>
+        <div class="form-group">
+          <label for="signupNameInput">이름 / 닉네임</label>
+          <input type="text" id="signupNameInput" placeholder="포털에서 표시될 이름">
+        </div>
+        <div class="form-group">
+          <label for="signupEmailInput">이메일</label>
+          <input type="email" id="signupEmailInput" placeholder="example@nunu.com">
+        </div>
+        <div class="form-group">
+          <label for="signupPwInput">비밀번호</label>
+          <input type="password" id="signupPwInput" placeholder="4자 이상의 비밀번호" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="signupPwConfirmInput">비밀번호 확인</label>
+          <input type="password" id="signupPwConfirmInput" placeholder="비밀번호를 한 번 더 입력해주세요" autocomplete="new-password">
+        </div>
+        <div class="auth-msg error-msg" id="signupErrorMsg" style="display: none;"></div>
+        <div class="auth-msg success-msg" id="signupSuccessMsg" style="display: none;"></div>
+        <div class="modal-actions" style="margin-top: 8px;">
+          <button type="submit" id="doSignupBtn" class="btn-primary" style="width: 100%;">회원가입 완료</button>
+        </div>
+        <div class="auth-switch-links">
+          <span>이미 계정이 있으신가요?</span>
+          <a href="#" id="switchToLoginBtn">로그인하기</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 계정 찾기 모달 -->
+  <div class="custom-modal" id="findAccountModal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-title-bar">
+        <h4><i class="fa-solid fa-key" style="color: var(--primary-color);"></i> <span id="findAccountTitle">아이디 / 비밀번호 찾기</span></h4>
+        <button class="modal-close-icon" id="closeFindAccountModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-form">
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;" id="findAccountDesc">
+          가입하신 이메일 또는 아이디를 입력하시면 계정 정보를 안내해 드립니다.
+        </p>
+        <div class="form-group">
+          <label for="findAccountInput" id="findAccountLabel">가입 이메일</label>
+          <input type="text" id="findAccountInput" placeholder="example@nunu.com">
+        </div>
+        <div class="auth-msg success-msg" id="findAccountSuccessMsg" style="display: none;"></div>
+        <div class="auth-msg error-msg" id="findAccountErrorMsg" style="display: none;"></div>
+        <div class="modal-actions" style="margin-top: 12px;">
+          <button type="button" id="doFindAccountBtn" class="btn-primary" style="width: 100%;">확인 및 안내 받기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 안내/정책 모달 (회사소개, 이용약관, 개인정보처리방침, 고객센터, 제휴제안) -->
+  <div class="custom-modal" id="infoNoticeModal" style="display: none;">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-title-bar">
+        <h4 id="infoNoticeModalTitle"><i class="fa-solid fa-circle-info" style="color: var(--primary-color);"></i> nunu 서비스 안내</h4>
+        <button class="modal-close-icon" id="closeInfoNoticeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-form" style="max-height: 60vh; overflow-y: auto; line-height: 1.7; font-size: 14px; color: #334155; padding: 12px 4px;" id="infoNoticeModalBody">
+      </div>
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button type="button" id="confirmInfoNoticeBtn" class="btn-primary" style="width: 100%;">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- nunu AI 어시스턴트 모달 대화창 -->
+  <div class="custom-modal" id="nunuAiModal" style="display: none;">
+    <div class="modal-box ai-chat-modal-box">
+      <div class="modal-title-bar ai-modal-header">
+        <div class="ai-modal-header-title">
+          <div class="ai-header-icon-box">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <h4>nunu AI 어시스턴트</h4>
+            <span class="ai-header-sub">지능형 포털 도우미 · 실시간 응답</span>
+          </div>
+        </div>
+        <button class="modal-close-icon" id="closeAiModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="ai-chat-body" id="aiChatMessages">
+        <div class="ai-msg ai-msg-bot">
+          <div class="ai-avatar"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div class="ai-bubble">
+            안녕하세요! nunu AI 어시스턴트입니다. ✨<br>
+            궁금한 점 질문, 최신 뉴스 요약, 북웨이브 도서 추천 등 무엇이든 말씀해주세요!
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-chips-bar">
+        <button class="ai-chip-btn" data-chat="북웨이브 서비스에 대해 알려줘">📚 북웨이브 소개</button>
+        <button class="ai-chip-btn" data-chat="오늘 날씨와 미세먼지 정보 알려줘">⛅ 오늘 날씨</button>
+        <button class="ai-chip-btn" data-chat="주말에 읽기 좋은 베스트셀러 책 추천해줘">📖 추천 도서</button>
+        <button class="ai-chip-btn" data-chat="파이썬으로 간단한 코딩 팁 하나 알려줘">💻 코딩 팁</button>
+      </div>
+
+      <div class="ai-chat-input-row">
+        <input type="text" id="aiModalInput" placeholder="nunu AI에게 메시지를 입력하세요..." autocomplete="off">
+        <button id="aiModalSendBtn" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> 전송</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스마트폰 / 외부 기기 접속 안내 모달 -->
+  <div class="custom-modal" id="deviceConnectModal" style="display: none;">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-title-bar">
+        <h4><i class="fa-solid fa-mobile-screen-button" style="color: var(--primary-color);"></i> 어디서나 다른 기기(스마트폰) 접속 안내</h4>
+        <button class="modal-close-icon" id="closeDeviceConnectModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+        <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(6, 182, 212, 0.08)); border: 1px solid rgba(79, 70, 229, 0.25); border-radius: var(--radius-md); padding: 12px 14px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <strong style="font-size: 13.5px; color: var(--primary-color);"><i class="fa-solid fa-globe"></i> 어디서나 원격 접속 (LTE / 5G / 와이파이 달라도 접속 가능)</strong>
+            <span style="font-size: 11px; padding: 2px 7px; background: #10b981; color: white; border-radius: 12px; font-weight: 700;">실시간 활성</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span id="publicTunnelUrlText" style="font-family: monospace; font-size: 13px; color: var(--text-main); word-break: break-all; font-weight: 600;">https://worker-temporary-soundtrack-flights.trycloudflare.com</span>
+            <button id="copyPublicUrlBtn" class="btn-subtle-action" style="white-space: nowrap;"><i class="fa-regular fa-copy"></i> 복사</button>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 14px;">
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-wifi"></i> 같은 Wi-Fi 환경 접속 주소</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span id="deviceConnectUrlText" style="font-family: monospace; font-size: 13px; color: var(--text-main);">http://192.168.0.3:8080</span>
+            <button id="copyDeviceUrlBtn" class="btn-subtle-action" style="white-space: nowrap;"><i class="fa-regular fa-copy"></i> 복사</button>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: #10b981; font-weight: 600; line-height: 1.5;">
+          💡 로그인한 계정의 북마크 및 nunu AI 대화 기록은 서버에 안전하게 보관되어 외부 스마트폰에서도 그대로 이어집니다.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 왼쪽 하단 '+' 버튼 (yeonu8683@gmail.com 메일 연결) -->
+  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=yeonu8683@gmail.com" target="_blank" rel="noopener noreferrer" id="floatingMailBtn" class="floating-mail-btn" title="yeonu8683@gmail.com 메일 보내기">
+    <i class="fa-solid fa-plus"></i>
+  </a>
+
+  <!-- 오른쪽 하단 동그란 'nunuAI(설명용)' 플로팅 버튼 -->
+  <button id="floatingAiGuideBtn" class="floating-ai-guide-btn" title="nunu AI 이용 안내 및 크레딧 설명 보기">
+    <div class="ai-guide-icon-pulse"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+    <span class="ai-guide-label">nunuAI<br><small>(설명용)</small></span>
+  </button>
+
+  <!-- nunuAI(설명용) 전용 안내 및 질의응답 모달 -->
+  <div class="custom-modal" id="nunuAiGuideModal" style="display: none;">
+    <div class="modal-box nunu-explain-modal-box">
+      <div class="modal-title-bar" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(236, 72, 153, 0.08)); border-bottom: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #ec4899); color: white; display: flex; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+          <div>
+            <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-main);">nunuAI <span style="font-size: 13px; font-weight: 600; color: #7c3aed;">(설명용)</span></h4>
+            <span style="font-size: 12px; color: var(--text-muted);">nunu 포털 · 북웨이브 전용 공식 안내 AI 어시스턴트</span>
+          </div>
+        </div>
+        <button class="modal-close-icon" id="closeAiGuideModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- 상단 포털/북웨이브 빠른 요약 카드 -->
+      <div class="explain-top-summary">
+        <div class="explain-summary-card">
+          <div class="summary-card-icon" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
+            <i class="fa-solid fa-compass"></i>
+          </div>
+          <div class="summary-card-text">
+            <strong>nunu 포털이란?</strong>
+            <span>실시간 검색, 맞춤 북마크, 뉴스/증시/날씨, nunu AI 창작 스튜디오를 한곳에서 즐기는 올인원 스마트 포털입니다.</span>
+          </div>
+        </div>
+        <div class="explain-summary-card">
+          <div class="summary-card-icon" style="background: rgba(79, 70, 229, 0.1); color: #4f46e5;">
+            <i class="fa-solid fa-headphones"></i>
+          </div>
+          <div class="summary-card-text">
+            <strong>북웨이브(Bookwave)란?</strong>
+            <span>포털 상단과 북마크에서 바로 연결되는 공식 오디오북 스트리밍 및 EPUB 전자책 플레이어 플랫폼입니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 대화 영역 -->
+      <div class="explain-chat-body" id="explainChatBody">
+        <div class="explain-msg explain-msg-bot">
+          <div class="explain-avatar"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div class="explain-bubble">
+            안녕하세요! <strong>nunuAI(설명용)</strong>입니다. ✨<br>
+            저는 <strong>nunu 포털과 인공지능, 북웨이브(Bookwave) 등 이 사이트에 관한 모든 기능과 사용법에 대해서만</strong> 정확하게 답변해 드리는 전용 안내 AI입니다.<br>
+            궁금한 점이 있으시면 아래 추천 질문을 누르시거나 직접 물어보세요!
+          </div>
+        </div>
+      </div>
+
+      <!-- 빠른 질문 추천 칩 -->
+      <div class="explain-chips-bar">
+        <button class="explain-chip" data-q="북웨이브가 뭐야?">📚 북웨이브가 뭐야?</button>
+        <button class="explain-chip" data-q="nunu포인트가 뭐야?">🪙 nunu포인트(크레딧)란?</button>
+        <button class="explain-chip" data-q="nunuAI에서 뭘 할 수 있어?">🎨 nunuAI 기능 소개</button>
+        <button class="explain-chip" data-q="포털에 광고는 어떻게 설정해?">📢 광고 설정 방법</button>
+      </div>
+
+      <!-- 입력창 -->
+      <div class="explain-input-bar">
+        <input type="text" id="explainInput" placeholder="nunu포털, nunuAI, 북웨이브에 대해 물어보세요..." autocomplete="off">
+        <button id="explainSendBtn" class="btn-primary" style="padding: 10px 18px; border-radius: 20px; font-weight: 700;">
+          <i class="fa-solid fa-paper-plane"></i> 전송
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <footer class="portal-footer">
+    <div class="footer-links">
+      <a href="#" id="footerLinkCompany">회사소개</a>
+      <a href="#" id="footerLinkTerms">이용약관</a>
+      <a href="#" id="footerLinkPrivacy"><strong>개인정보처리방침</strong></a>
+      <a href="#" id="footerLinkCustomer">고객센터</a>
+      <a href="#" id="footerLinkPartnership">제휴제안</a>
+    </div>
+    <div class="footer-copy">
+      <p>Copyright © <strong>nunu Corp.</strong> All Rights Reserved. 스마트 올인원 포털 & nunu AI Pro</p>
+    </div>
+  </footer>
+  </div><!-- /portalHomeWrapper -->
+
+  <!-- 크롬 멀티 탭 뷰 컨테이너 (각 탭의 화면 / iframe들이 위치하는 영역) -->
+  <div id="chromeTabViews" class="chrome-tab-views" style="display: none;"></div>
+
+  <script src="netlify-api-bridge.js"></script>
+  <script src="app.js?v=20261022_final"></script>
+
+  <!-- 누누스카이 (nunuSky) 앱 안내 모달 -->
+  <div id="nunuSkyAppModal" class="nunusky-modal-overlay" style="display: none;">
+    <div class="nunusky-modal-card">
+      <div class="nunusky-modal-hero-icon">
+        <i class="fa-solid fa-rocket"></i>
+      </div>
+      <h2 class="nunusky-modal-title">누누스카이 (nunuSky) 앱</h2>
+      <p class="nunusky-modal-tagline" style="color:#64748b; font-size:13.5px;">PC 전용 데스크톱 브라우저 앱</p>
+      
+      <div class="nunusky-modal-features">
+        <div>
+          <i class="fa-solid fa-desktop" style="color: #0ea5e9; font-size: 16px;"></i>
+          <span><strong>바탕화면 전용 앱 준비 완료:</strong> 컴퓨터 바탕화면에 <strong>[누누스카이 (nunuSky)]</strong> 바로가기 앱이 설치되었습니다. 더블클릭하시면 주소창 없는 깔끔한 독립 브라우저로 열립니다.</span>
+        </div>
+        <div>
+          <i class="fa-solid fa-bolt" style="color: #f59e0b; font-size: 16px;"></i>
+          <span><strong>차세대 브라우저 앱:</strong> 상단 멀티 탭, 5대 포털 통합 검색, nunu AI Pro, 메일, 일기 서비스를 하나의 전용 앱으로 쾌적하게 사용하세요.</span>
+        </div>
+        <div>
+          <i class="fa-solid fa-shield-halved" style="color: #10b981; font-size: 16px;"></i>
+          <span><strong>작업표시줄 등록 (PWA):</strong> 브라우저 주소창 우측 [앱 설치] 아이콘 또는 아래 버튼을 누르면 Windows 작업표시줄과 시작 메뉴에 공식 등록됩니다.</span>
+        </div>
+      </div>
+
+      <div class="nunusky-modal-actions">
+        <a href="/download/nunusky" class="btn-nunusky-action btn-nunusky-install" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;" download="nunuSky_Setup.exe">
+          <i class="fa-solid fa-download"></i> PC 앱 원클릭 설치 (.exe)
+        </a>
+        <button type="button" id="btnTriggerPwaInstall" class="btn-nunusky-action" style="background:#f1f5f9; color:#334155;">
+          <i class="fa-solid fa-cloud-arrow-down"></i> 브라우저 PWA 등록
+        </button>
+        <button type="button" id="btnCloseNunuSkyModal" class="btn-nunusky-action btn-nunusky-close">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- nunuSky AI 사이드 패널 (Whale/Edge 스타일: 화면을 함께 보며 대화하는 AI 어시스턴트) -->
+  <aside id="aiSidePanel" class="ai-side-panel">
+    <div class="ai-side-header">
+      <div class="ai-side-header-left">
+        <i class="fa-solid fa-bars" style="color: #64748b; font-size: 15px;"></i>
+        <div class="ai-side-logo-title">
+          <span>AI Chat</span>
+          <span class="ai-side-beta-badge">Beta</span>
+        </div>
+      </div>
+      <div class="ai-side-header-right">
+        <button type="button" id="btnAiSideNewChat" class="btn-ai-side-new">
+          <i class="fa-solid fa-plus"></i> 새 대화
+        </button>
+        <button type="button" id="btnAiSideClose" class="btn-ai-side-close" title="닫기">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 현재 화면 참조 바 -->
+    <div class="ai-side-context-bar">
+      <i class="fa-solid fa-eye" style="color: #0ea5e9;"></i>
+      <span>현재 화면 참조: <strong id="aiSideContextLabel">nunu 포털 홈</strong></span>
+    </div>
+
+    <!-- 대화 메시지 영역 -->
+    <div class="ai-side-messages-container" id="aiSideMessages">
+      <div class="ai-side-welcome" id="aiSideWelcome">
+        <h2>무엇이든 물어보세요</h2>
+        <p>왼쪽 화면을 실시간으로 보며 요약, 분석, 대화를 나눕니다.</p>
+
+        <div class="ai-side-chips">
+          <button type="button" class="ai-side-chip" data-prompt="현재 화면의 내용을 핵심만 요약해줘">
+            <i class="fa-solid fa-file-lines" style="color:#0ea5e9;"></i> 현재 화면 핵심 요약
+          </button>
+          <button type="button" class="ai-side-chip" data-prompt="이 페이지에서 가장 중요한 정보가 뭐야?">
+            <i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> 페이지 주요 정보 분석
+          </button>
+          <button type="button" class="ai-side-chip" data-prompt="안녕! 오늘 추천할 만한 콘텐츠나 작업이 있어?">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6;"></i> AI와 자유롭게 대화하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단 입력창 (Whale/Edge 스타일) -->
+    <div class="ai-side-input-wrapper">
+      <div class="ai-side-input-box">
+        <textarea id="aiSideTextarea" placeholder="@ 또는 /로 작업을 시작하세요. (화면에 대해 질문해보세요)" rows="1"></textarea>
+        <div class="ai-side-input-bottom">
+          <button type="button" id="btnAiSideContextAction" style="background:transparent; border:none; color:#64748b; font-size:16px; cursor:pointer;" title="현재 화면 새로고침">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+          <button type="button" id="btnAiSideSend" class="btn-ai-side-send" title="전송">
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        </div>
+      </div>
+      <div class="ai-side-disclaimer">AI가 생성한 응답은 부정확할 수 있습니다.</div>
+    </div>
+  </aside>
+
+  <!-- ==========================================
+       시스템 긴급 비상정지 사이렌 테이크오버 오버레이 (관리자 발동 시)
+       ========================================== -->
+  <div id="nunuEmergencyTakeoverOverlay" class="emergency-takeover-overlay" style="display: none;">
+    <div class="emergency-siren-stage">
+      <div class="siren-beacon-glow"></div>
+      
+      <!-- 사이렌 3D 경광등 유닛 -->
+      <div class="siren-housing">
+        <div class="siren-dome">
+          <div class="siren-reflector-beam"></div>
+          <div class="siren-bulb"></div>
+        </div>
+        <div class="siren-base-pedestal"></div>
+      </div>
+      
+      <div class="siren-pulse-shockwave shockwave-1"></div>
+      <div class="siren-pulse-shockwave shockwave-2"></div>
+    </div>
+
+    <div class="emergency-content-wrap">
+      <div class="emergency-danger-tag">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>SYSTEM EMERGENCY SHUTDOWN</span>
+      </div>
+
+      <h1 class="emergency-main-title">관리자로 인해 종료되었습니다.</h1>
+
+      <p class="emergency-main-desc">
+        시스템 관리자에 의해 긴급 비상정지 명령이 발동되었습니다.<br>
+        보안 및 시스템 점검을 위해 모든 누누포털 웹 및 누누스카이 앱의 서비스 사용이 즉시 중단되었습니다.
+      </p>
+
+      <div class="emergency-status-card">
+        <div class="status-item">
+          <span class="lbl"><i class="fa-solid fa-power-off"></i> 시스템 상태</span>
+          <span class="val text-danger">긴급 비상정지 (SHUTDOWN)</span>
+        </div>
+        <div class="status-item">
+          <span class="lbl"><i class="fa-solid fa-user-shield"></i> 조치자</span>
+          <span class="val">최고 관리자 (Administrator)</span>
+        </div>
+        <div class="status-item">
+          <span class="lbl"><i class="fa-solid fa-clock-rotate-left"></i> 복구 상태</span>
+          <span class="val pulse-text"><i class="fa-solid fa-spinner fa-spin"></i> 관리자의 비상정지 해제 대기 중...</span>
+        </div>
+      </div>
+
+      <div class="emergency-siren-controls">
+        <button type="button" id="btnToggleEmergencyAudio" class="btn-siren-sound" title="경보음 켜기/끄기">
+          <i class="fa-solid fa-volume-high"></i> <span>사이렌 경보음 끄기</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

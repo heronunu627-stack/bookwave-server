@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nunu AI 스캐너 - 카메라 스캔 검사 & 시험 채점</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&family=Nanum+Myeongjo:wght@400;700;800&family=Outfit:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="diary.css?v=20261012_1">
+</head>
+<body class="theme-light">
+  <!-- 상단 네비게이션 헤더 -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" class="brand-logo" title="nunu 포털 홈으로">
+          <span class="logo-nunu">nunu</span>
+          <span class="logo-badge" id="headerAppBadge">AI 스캐너</span>
+        </a>
+        <span class="header-subtitle" id="headerSubtitle">카메라 선택 스캔 • 일기/독서록 검사 & 시험지 채점</span>
+      </div>
+
+      <div class="header-right">
+        <a href="index.html" class="nav-btn-outline" title="포털 홈으로 이동">
+          <i class="fa-solid fa-house"></i> <span>포털 홈</span>
+        </a>
+        <a href="ai.html" class="nav-btn-outline" title="nunu AI Pro 창작실로 이동">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Pro</span>
+        </a>
+        <button id="btnOpenHistory" class="nav-btn-outline" title="저장한 기록 목록 열기">
+          <i class="fa-solid fa-clock-rotate-left"></i> <span>스캔 보관함</span>
+          <span class="history-count-badge" id="historyCountBadge">0</span>
+        </button>
+        <button id="themeToggleBtn" class="theme-toggle-btn" title="다크 / 라이트 모드 전환">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <main class="app-main">
+    <div class="main-container">
+      
+      <!-- 1. 최상단 메인 모드 선택 바 (검사 모드 vs 시험 모드) -->
+      <section class="main-mode-switcher-section">
+        <div class="main-mode-nav">
+          <button type="button" class="main-mode-tab active" data-appmode="inspect" id="btnMainModeInspect">
+            <span class="tab-icon-wrap"><i class="fa-solid fa-clipboard-check"></i></span>
+            <div class="tab-title-wrap">
+              <strong>[검사] 모드</strong>
+              <span>일기 • 독서록 맞춤법 교정 & AI 코칭</span>
+            </div>
+          </button>
+          <button type="button" class="main-mode-tab" data-appmode="test" id="btnMainModeTest">
+            <span class="tab-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></span>
+            <div class="tab-title-wrap">
+              <strong>[시험] 모드</strong>
+              <span>시험지 • 답안지 스캔 & AI 자동 채점</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <!-- 시험 모드 안내 배너 (시험 모드일 때 활성화) -->
+      <div class="test-mode-notice-banner" id="testModeNoticeBanner" style="display: none;">
+        <div class="notice-icon"><i class="fa-solid fa-shield-halved" style="color: #6366f1;"></i></div>
+        <div class="notice-text">
+          <strong>🛡️ 탈로스(Talos) 공식 시험지 전용 AI 자동 채점</strong>
+          <p>탈로스(Talos)에서 공식 발급된 시험지만 채점이 지원됩니다. (타사 또는 미등록 시험지는 채점 대상에서 제외되며, 공식 시험지 및 정답은 <a href="admin.html#talosTestsSection" style="color: #4f46e5; text-decoration: underline; font-weight: 700;">nunu 관리자 사이트</a>에서 추가·관리할 수 있습니다.)</p>
+        </div>
+      </div>
+
+
+      <!-- 2. 카메라 선택 및 실시간 스캐너 섹션 (핵심 기능) -->
+      <section class="camera-scanner-card" id="cameraScannerCard">
+        <div class="scanner-card-header">
+          <div class="camera-select-group">
+            <label for="cameraDeviceSelect" class="camera-label">
+              <i class="fa-solid fa-video"></i> <span>카메라 선택:</span>
+            </label>
+            <select id="cameraDeviceSelect" class="camera-select-box">
+              <option value="">카메라 장치 검색 중...</option>
+            </select>
+            <button type="button" id="btnRefreshCameras" class="btn-icon-subtle" title="카메라 목록 새로고침">
+              <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+          </div>
+
+          <div class="camera-quick-tools">
+            <button type="button" id="btnToggleCameraPower" class="btn-cam-tool active">
+              <i class="fa-solid fa-power-off"></i> <span id="cameraPowerText">카메라 끄기</span>
+            </button>
+            <button type="button" id="btnSwitchCamera" class="btn-cam-tool" title="전면/후면 카메라 전환">
+              <i class="fa-solid fa-camera-rotate"></i> <span>전환</span>
+            </button>
+            <label for="fileUploadInput" class="btn-cam-tool upload-tool" title="갤러리나 파일에서 사진 선택">
+              <i class="fa-solid fa-folder-open"></i> <span>사진 파일 올리기</span>
+            </label>
+            <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
+          </div>
+        </div>
+
+        <!-- 카메라 뷰파인더 화면 -->
+        <div class="scanner-viewfinder-wrapper" id="scannerViewfinderWrapper">
+          <!-- 비디오 스트림 -->
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          
+          <!-- 카메라 꺼짐 / 대기 상태 플레이스홀더 -->
+          <div class="camera-placeholder" id="cameraPlaceholder" style="display: none;">
+            <i class="fa-solid fa-camera camera-placeholder-icon"></i>
+            <p>카메라가 꺼져 있습니다.</p>
+            <button type="button" id="btnStartCameraPlaceholder" class="btn-open-cam">
+              <i class="fa-solid fa-video"></i> 카메라 켜기
+            </button>
+          </div>
+
+          <!-- 스캔 가이드라인 오버레이 (문서 / 시험지 프레임) -->
+          <div class="scanner-overlay" id="scannerOverlay">
+            <div class="scan-frame">
+              <div class="frame-corner top-left"></div>
+              <div class="frame-corner top-right"></div>
+              <div class="frame-corner bottom-left"></div>
+              <div class="frame-corner bottom-right"></div>
+              
+              <!-- 레이저 스캔 애니메이션 라인 -->
+              <div class="scan-laser-line" id="scanLaserLine"></div>
+              
+              <div class="scan-guide-text" id="scanGuideText">
+                <i class="fa-solid fa-expand"></i> <span>공책이나 시험지를 사각형 틀 안에 맞춰주세요</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 캡처 캔버스 (숨김) -->
+          <canvas id="captureCanvas" style="display: none;"></canvas>
+
+          <!-- 촬영된 사진 미리보기 오버레이 -->
+          <div class="captured-preview-overlay" id="capturedPreviewOverlay" style="display: none;">
+            <img id="capturedImagePreview" src="" alt="촬영된 스캔 이미지">
+            <div class="captured-badge"><i class="fa-solid fa-check"></i> 촬영 완료</div>
+          </div>
+        </div>
+
+        <!-- 스캐너 하단 액션 버튼 바 -->
+        <div class="scanner-action-bar">
+          <div class="scanner-status-hint" id="scannerStatusHint">
+            <span class="status-dot green"></span>
+            <span id="scannerStatusText">카메라 준비 완료 • 스캔할 페이지를 비춘 후 촬영하세요.</span>
+          </div>
+
+          <div class="scanner-btn-group">
+            <!-- 촬영 버튼 -->
+            <button type="button" id="btnCapturePhoto" class="btn-capture-scan">
+              <span class="shutter-circle"></span>
+              <span class="btn-label" id="btnCaptureLabel">📸 사진 촬영 및 스캔</span>
+            </button>
+
+            <!-- 재촬영 버튼 (캡처 후 노출) -->
+            <button type="button" id="btnRetakePhoto" class="btn-retake-scan" style="display: none;">
+              <i class="fa-solid fa-rotate-right"></i> 다시 촬영
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 상세 세부 옵션 & 텍스트 직접 입력 (접이식/서브패널) -->
+      <section class="editor-options-card">
+        
+        <!-- [검사 모드 옵션] 일기/독서록 선택 및 메타데이터 -->
+        <div class="inspect-options-panel" id="inspectOptionsPanel">
+          <div class="sub-mode-pills">
+            <button type="button" class="sub-pill active" data-submode="diary" id="subModeDiaryBtn">
+              <i class="fa-solid fa-book-open"></i> 일기 검사
+            </button>
+            <button type="button" class="sub-pill" data-submode="book" id="subModeBookBtn">
+              <i class="fa-solid fa-book-bookmark"></i> 독서록 검사
+            </button>
+          </div>
+
+          <!-- 일기 메타데이터 -->
+          <div class="meta-row meta-diary" id="metaDiaryRow">
+            <div class="meta-item meta-date-box">
+              <label for="diaryDate"><i class="fa-regular fa-calendar"></i> 날짜</label>
+              <input type="date" id="diaryDate" class="input-date">
+            </div>
+            <div class="meta-item meta-weather-box">
+              <span class="meta-label"><i class="fa-solid fa-cloud-sun"></i> 날씨</span>
+              <div class="weather-selector" id="weatherSelector">
+                <button type="button" class="weather-chip active" data-weather="맑음">☀️ 맑음</button>
+                <button type="button" class="weather-chip" data-weather="구름 많음">⛅ 구름</button>
+                <button type="button" class="weather-chip" data-weather="비">🌧️ 비</button>
+                <button type="button" class="weather-chip" data-weather="눈">❄️ 눈</button>
+                <button type="button" class="weather-chip" data-weather="바람">🌬️ 바람</button>
+              </div>
+            </div>
+            <div class="meta-item meta-mood-box">
+              <span class="meta-label"><i class="fa-solid fa-face-smile"></i> 기분</span>
+              <div class="mood-selector" id="moodSelector">
+                <button type="button" class="mood-chip active" data-mood="행복·뿌듯">😊 뿌듯</button>
+                <button type="button" class="mood-chip" data-mood="신남·즐거움">🥳 신남</button>
+                <button type="button" class="mood-chip" data-mood="평온·차분">😌 평온</button>
+                <button type="button" class="mood-chip" data-mood="슬픔·속상">😢 속상</button>
+                <button type="button" class="mood-chip" data-mood="생각 많음">🤔 고민</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 독서록 메타데이터 -->
+          <div class="meta-row meta-book" id="metaBookRow" style="display: none;">
+            <div class="meta-item flex-2">
+              <label for="bookTitleInput"><i class="fa-solid fa-book"></i> 책 제목</label>
+              <input type="text" id="bookTitleInput" class="input-text" placeholder="예: 어린 왕자">
+            </div>
+            <div class="meta-item flex-1">
+              <label for="bookAuthorInput"><i class="fa-solid fa-user-pen"></i> 지은이</label>
+              <input type="text" id="bookAuthorInput" class="input-text" placeholder="예: 생텍쥐페리">
+            </div>
+            <div class="meta-item meta-date-box">
+              <label for="bookDate"><i class="fa-regular fa-calendar"></i> 읽은 날짜</label>
+              <input type="date" id="bookDate" class="input-date">
+            </div>
+          </div>
+
+          <!-- 피드백 코칭 어조 선택 -->
+          <div class="style-row">
+            <span class="style-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 코칭 스타일:</span>
+            <div class="style-chips" id="styleChips">
+              <button type="button" class="style-chip active" data-style="mentor">🐥 다정한 멘토 (초등·어린이)</button>
+              <button type="button" class="style-chip" data-style="coach">🧑‍🏫 글쓰기 코치 (청소년·일반)</button>
+              <button type="button" class="style-chip" data-style="editor">✍️ 전문 교정가 (성인)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- [시험 모드 옵션] 탈로스 공식 시험지 선택 및 인증코드 입력 -->
+        <div class="test-options-panel" id="testOptionsPanel" style="display: none;">
+          <div class="meta-row">
+            <div class="meta-item flex-2">
+              <label for="talosExamSelect"><i class="fa-solid fa-graduation-cap" style="color: #6366f1;"></i> 탈로스(Talos) 공식 시험지 선택</label>
+              <select id="talosExamSelect" class="input-text" style="font-weight: 700; color: #1e293b; background: #f8fafc; border-color: #cbd5e1;">
+                <option value="">🔍 자동 감지 (카메라 스캔 시 시험지 코드 자동 인식)</option>
+              </select>
+            </div>
+            <div class="meta-item flex-1">
+              <label for="talosAuthCodeInput"><i class="fa-solid fa-key" style="color: #f59e0b;"></i> 시험지 인증코드 <span style="color: #ef4444; font-size: 11px;">(필수)</span></label>
+              <input type="text" id="talosAuthCodeInput" class="input-text" placeholder="관리자 지정 인증코드 입력" autocomplete="off" style="font-weight: 700; color: #1e293b; background: #fffbeb; border-color: #fde68a;">
+            </div>
+          </div>
+          <div style="margin-top: 8px; font-size: 12px; color: #64748b; display: flex; align-items: center; justify-content: space-between;">
+            <span><i class="fa-solid fa-shield-halved" style="color: #6366f1;"></i> nunu 관리자 사이트의 해당 시험지에 설정된 <strong>인증코드</strong>가 일치해야만 채점이 실행됩니다.</span>
+            <a href="admin.html#talosTestsSection" target="_blank" style="color: #6366f1; text-decoration: underline; font-weight: 600;">
+              <i class="fa-solid fa-gear"></i> 관리자에서 시험지·인증코드 확인/설정
+            </a>
+          </div>
+        </div>
+
+
+
+        <!-- 텍스트 직접 입력 / 판독 결과 수동 검토용 접이식 아코디언 -->
+        <div class="manual-text-toggle-wrap">
+          <button type="button" class="btn-toggle-manual" id="btnToggleManualText">
+            <i class="fa-solid fa-keyboard"></i>
+            <span>키보드로 직접 입력하거나 판독 텍스트 확인하기</span>
+            <i class="fa-solid fa-chevron-down chevron-icon" id="chevronManualIcon"></i>
+          </button>
+        </div>
+
+        <div class="manual-text-body" id="manualTextBody" style="display: none;">
+          <div class="title-row">
+            <input type="text" id="postTitleInput" class="input-title" placeholder="제목을 입력하세요 (예: 떡볶이 먹은 즐거운 날 / 국어 단원평가)">
+          </div>
+          <div class="textarea-wrapper">
+            <textarea id="postContentInput" class="ruled-textarea" placeholder="카메라로 스캔하면 판독된 글이 이곳에 자동으로 채워집니다. 필요하다면 직접 타이핑하거나 수정할 수도 있습니다."></textarea>
+          </div>
+          <div class="counter-box">
+            <span id="charCount">공백 포함 0자</span>
+            <span class="dot-separator">•</span>
+            <span id="charNoSpaceCount">공백 제외 0자</span>
+            <span class="dot-separator">•</span>
+            <span id="wordCount">0단어</span>
+            <div class="sample-btn-wrap">
+              <button type="button" class="btn-sample-link" id="btnFillDiaryExample">일기 예시</button>
+              <button type="button" class="btn-sample-link" id="btnFillBookExample">독서록 예시</button>
+              <button type="button" class="btn-sample-link" id="btnResetForm">지우기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 최종 분석 실행 버튼 (텍스트 직접 입력 시 또는 사진 확정 시) -->
+        <div class="action-submit-row">
+          <button type="button" id="btnSubmitAnalyze" class="btn-analyze-submit">
+            <span class="btn-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+            <span class="btn-text" id="btnAnalyzeText">AI 스캔 분석 & 검사 시작</span>
+            <span class="spinner" id="analyzeSpinner" style="display: none;"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 4. 결과 분석 영역 (결과 생성 시 노출) -->
+      <section class="result-section" id="resultSection" style="display: none;">
+        
+        <!-- [검사 모드 결과 카드] -->
+        <div class="result-card-wrap" id="resultInspectWrap">
+          <div class="result-header-card">
+            <div class="result-header-top">
+              <div class="result-badge-wrap">
+                <span class="badge-tag" id="resultTypeBadge"><i class="fa-solid fa-book"></i> 일기 검사</span>
+                <h2 class="result-main-title" id="resultPostTitle">제목</h2>
+              </div>
+              <div class="result-meta-tags" id="resultMetaTags"></div>
+            </div>
+
+            <!-- 요약 배너 -->
+            <div class="result-summary-banner" id="resultSummaryBanner">
+              <div class="summary-icon"><i class="fa-solid fa-medal"></i></div>
+              <div class="summary-text-box">
+                <h3 id="resultSummaryTitle">멋진 글이에요!</h3>
+                <p id="resultSummaryDesc">카메라로 판독된 내용과 맞춤법 교정, 따뜻한 피드백을 확인해보세요.</p>
+              </div>
+              <div class="summary-count-badge" id="summaryCountBadge">
+                교정 <strong>0</strong>곳
+              </div>
+            </div>
+
+            <!-- 탭 버튼 -->
+            <div class="result-tabs">
+              <button type="button" class="result-tab-btn active" data-tab="spell" id="tabSpellBtn">
+                <i class="fa-solid fa-spell-check"></i>
+                <span>맞춤법 & 띄어쓰기 교정</span>
+                <span class="tab-badge" id="tabSpellBadge">0</span>
+              </button>
+              <button type="button" class="result-tab-btn" data-tab="feedback" id="tabFeedbackBtn">
+                <i class="fa-solid fa-heart"></i>
+                <span>AI 내용 피드백 & 코칭</span>
+              </button>
+              <button type="button" class="result-tab-btn" data-tab="ocr" id="tabOcrBtn">
+                <i class="fa-solid fa-camera"></i>
+                <span>카메라 판독 원문</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 탭 패널 1: 맞춤법 교정 -->
+          <div class="tab-content-panel active" id="panelSpell">
+            <div class="spell-panel-grid">
+              <div class="spell-card corrected-text-card">
+                <div class="card-inner-header">
+                  <h4><i class="fa-solid fa-check-double text-success"></i> 완성된 교정본</h4>
+                  <div class="card-tools">
+                    <button type="button" class="tool-btn" id="btnCopyCorrected"><i class="fa-regular fa-copy"></i> 복사</button>
+                    <button type="button" class="tool-btn tool-primary" id="btnApplyToEditor"><i class="fa-solid fa-pen-to-square"></i> 에디터에 적용</button>
+                  </div>
+                </div>
+                <div class="corrected-body" id="correctedTextBody"></div>
+              </div>
+
+              <div class="spell-card corrections-list-card">
+                <div class="card-inner-header">
+                  <h4><i class="fa-solid fa-list-check text-primary"></i> 맞춤법·띄어쓰기 교정 내역</h4>
+                  <span class="text-hint" id="correctionsTotalHint">총 0건</span>
+                </div>
+                <div class="corrections-container" id="correctionsContainer"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 탭 패널 2: AI 피드백 -->
+          <div class="tab-content-panel" id="panelFeedback">
+            <div class="feedback-grid">
+              <div class="fb-card fb-praise-card">
+                <div class="fb-card-header">
+                  <span class="fb-card-icon praise-icon"><i class="fa-solid fa-star"></i></span>
+                  <h4>마음을 울린 포인트 & 따뜻한 칭찬</h4>
+                </div>
+                <div class="fb-card-content" id="fbPraiseContent"></div>
+              </div>
+
+              <div class="fb-card fb-questions-card">
+                <div class="fb-card-header">
+                  <span class="fb-card-icon question-icon"><i class="fa-solid fa-lightbulb"></i></span>
+                  <h4>생각을 쑥쑥 키우는 다정한 질문</h4>
+                </div>
+                <div class="fb-card-content" id="fbQuestionsContent"></div>
+              </div>
+
+              <div class="fb-card fb-tips-card">
+                <div class="fb-card-header">
+                  <span class="fb-card-icon tip-icon"><i class="fa-solid fa-seedling"></i></span>
+                  <h4>글을 더 빛나게 해줄 표현 꿀팁</h4>
+                </div>
+                <div class="fb-card-content" id="fbTipsContent"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 탭 패널 3: 카메라 판독 원문 (OCR) -->
+          <div class="tab-content-panel" id="panelOcr">
+            <div class="spell-card">
+              <div class="card-inner-header">
+                <h4><i class="fa-solid fa-file-lines text-primary"></i> 카메라 스캔 원문 (손글씨 판독)</h4>
+                <button type="button" class="tool-btn" id="btnCopyOcrText"><i class="fa-regular fa-copy"></i> 원문 복사</button>
+              </div>
+              <div class="corrected-body" id="ocrExtractedTextBody"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- [시험 모드 결과 카드] -->
+        <div class="result-card-wrap" id="resultTestWrap" style="display: none;">
+          <!-- 탈로스 미등록/인증불가 시험지 거절 안내 카드 -->
+          <div class="talos-rejected-card" id="talosRejectedCard" style="display: none;">
+            <div class="rejected-icon-wrap">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="rejected-content">
+              <div class="rejected-badge">탈로스(Talos) 공식 시험지 미인증 안내</div>
+              <h3 id="talosRejectedTitle">채점할 수 없는 시험지입니다</h3>
+              <p id="talosRejectedReason" class="rejected-reason-text">
+                이 시험지는 탈로스(내 회사)에서 제공하지 않는 시험지이거나, nunu 관리자에 등록되지 않아 자동 채점이 제한됩니다.
+              </p>
+              <div class="rejected-explanation-box" id="talosRejectedExplanation"></div>
+              <div class="rejected-actions">
+                <a href="admin.html#talosTestsSection" class="btn-primary" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-graduation-cap"></i> nunu 관리자에서 시험지 및 정답 등록하기
+                </a>
+                <button type="button" class="btn-secondary" id="btnRetryScanAfterReject">
+                  <i class="fa-solid fa-camera"></i> 다른 시험지 다시 스캔
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 탈로스 공식 인증 채점 결과 컨테이너 -->
+          <div id="talosGradingSuccessWrap">
+            <div class="test-score-banner">
+              <div class="score-main-box">
+                <div class="talos-verified-badge" id="talosVerifiedBadge">
+                  <i class="fa-solid fa-circle-check"></i> 탈로스(Talos) 공식 시험지 인증 완료
+                </div>
+                <div class="talos-exam-title-bar" id="talosExamTitleBar">
+                  <span class="talos-test-code" id="talosExamCode">TALOS-KOR-01</span>
+                  <span class="talos-test-title" id="talosExamTitle">초등 국어 단원평가</span>
+                </div>
+                <span class="score-label">최종 획득 점수</span>
+                <div class="score-number-wrap">
+                  <strong class="score-number" id="testScoreNumber">0</strong>
+                  <span class="score-max" id="testMaxScore">/ 100점</span>
+                </div>
+              </div>
+              <div class="score-stats-grid">
+                <div class="stat-box">
+                <span class="stat-name">총 문항</span>
+                <strong id="testTotalCount">0</strong>
+              </div>
+              <div class="stat-box success">
+                <span class="stat-name">맞은 개수</span>
+                <strong id="testCorrectCount">0</strong>
+              </div>
+              <div class="stat-box danger">
+                <span class="stat-name">틀린 개수</span>
+                <strong id="testWrongCount">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- 문항별 채점 상세 리스트 -->
+          <div class="test-grading-card">
+            <div class="card-inner-header">
+              <h4><i class="fa-solid fa-list-ol text-primary"></i> 문항별 상세 채점표</h4>
+              <span class="text-hint" id="testGradingSummaryHint">채점 완료</span>
+            </div>
+            <div class="test-questions-list" id="testQuestionsList"></div>
+          </div>
+
+            <!-- 시험 총평 & 오답 복습 팁 -->
+            <div class="feedback-grid" style="margin-top: 20px;">
+              <div class="fb-card fb-praise-card">
+                <div class="fb-card-header">
+                  <span class="fb-card-icon praise-icon"><i class="fa-solid fa-award"></i></span>
+                  <h4>시험 총평 & 격려</h4>
+                </div>
+                <div class="fb-card-content" id="testFbSummary"></div>
+              </div>
+              <div class="fb-card fb-tips-card">
+                <div class="fb-card-header">
+                  <span class="fb-card-icon tip-icon"><i class="fa-solid fa-pen-ruler"></i></span>
+                  <h4>오답 복습 포인트 & 학습 조언</h4>
+                </div>
+                <div class="fb-card-content" id="testFbTips"></div>
+              </div>
+            </div>
+          </div> <!-- talosGradingSuccessWrap 닫기 -->
+        </div>
+
+
+        <!-- 공통 액션 도구 막대 -->
+        <div class="result-action-bar">
+          <div class="action-left">
+            <button type="button" class="btn-action-tool" id="btnTtsSpeak">
+              <i class="fa-solid fa-volume-high"></i> <span id="ttsBtnText">소리로 듣기</span>
+            </button>
+            <button type="button" class="btn-action-tool" id="btnTtsStop" style="display: none;">
+              <i class="fa-solid fa-stop"></i> <span>정지</span>
+            </button>
+          </div>
+          <div class="action-right">
+            <button type="button" class="btn-action-tool" id="btnSaveToHistory">
+              <i class="fa-regular fa-bookmark"></i> <span>보관함에 저장</span>
+            </button>
+            <button type="button" class="btn-action-tool" id="btnPrintReport">
+              <i class="fa-solid fa-print"></i> <span>인쇄 / PDF 저장</span>
+            </button>
+            <button type="button" class="btn-action-tool" id="btnCopyFullReport">
+              <i class="fa-regular fa-clipboard"></i> <span>전체 리포트 복사</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- 보관함 모달 -->
+  <div class="modal-overlay" id="historyModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+          <h3>스캔 보관함</h3>
+          <span class="modal-count" id="modalCount">0건 저장됨</span>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseHistory"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="history-list" id="historyListContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-clear-history" id="btnClearHistory">전체 삭제</button>
+        <button type="button" class="btn-modal-close" id="btnModalCloseDone">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 메시지 -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- 푸터 -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <p>© 2026 nunu AI 스캐너 • 카메라 선택 스캔 검사 & 시험 자동 채점 솔루션</p>
+      <div class="footer-links">
+        <a href="index.html">nunu 포털 홈</a>
+        <span class="dot">•</span>
+        <a href="ai.html">nunu AI Pro</a>
+        <span class="dot">•</span>
+        <a href="mail.html">nunu 메일</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="netlify-api-bridge.js"></script>
+  <script src="diary.js?v=20261022_netlify"></script>
+</body>
+</html>

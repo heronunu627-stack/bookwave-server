@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nunu AI - 스마트 AI 채팅방</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Outfit:wght@600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="ai.css?v=20261010_2">
+</head>
+<body class="theme-light">
+  <div class="ai-app-container">
+    <!-- 좌측 사이드바: 대화 히스토리 및 메뉴 -->
+    <aside class="ai-sidebar" id="aiSidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-logo">
+          <span class="logo-nunu">nunu</span>
+          <span class="logo-ai-badge">AI</span>
+        </a>
+        <button id="sidebarToggleBtn" class="icon-btn-ghost" title="사이드바 접기">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-action-box">
+        <button id="btnNewChat" class="btn-new-chat">
+          <i class="fa-solid fa-plus"></i> <span>새 대화 시작</span>
+        </button>
+      </div>
+
+      <!-- 로그인 계정 상태 & 기기 간 동기화 위젯 -->
+      <div class="sidebar-user-section" id="sidebarUserSection">
+        <!-- JS 동적 렌더링 -->
+      </div>
+
+      <div class="sidebar-section-title">
+        <span>내 계정 대화 목록</span>
+        <button id="btnClearAllHistory" class="text-tiny-btn" title="모든 대화 삭제">전체 삭제</button>
+      </div>
+
+      <div class="chat-history-list" id="chatHistoryList">
+        <!-- JS로 동적 생성 -->
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="https://bookwave-server.onrender.com" target="_blank" class="sidebar-link-card bw-link-card">
+          <i class="fa-solid fa-headphones"></i>
+          <div>
+            <strong>북웨이브 (Bookwave)</strong>
+            <span>오디오북 & 전자책 플레이어</span>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square arrow-icon"></i>
+        </a>
+        <a href="index.html" class="sidebar-link-btn">
+          <i class="fa-solid fa-house"></i> <span>nunu 포털 홈으로 이동</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- 메인 대화방 영역 -->
+    <main class="ai-chat-main">
+      <!-- 상단 탑바 -->
+      <header class="chat-top-bar">
+        <div class="top-left">
+          <button id="mobileMenuBtn" class="mobile-menu-btn" title="메뉴 열기">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <!-- AI 모델 선택 인터랙티브 드롭다운 -->
+          <div class="model-selector-wrapper" id="modelSelectorWrapper">
+            <button id="modelSelectorBtn" class="model-selector-btn" title="AI 모델 변경">
+              <span class="sparkle-icon" id="modelIconBadge"><i class="fa-solid fa-bolt"></i></span>
+              <div class="model-info">
+                <div class="model-name-row">
+                  <strong id="modelName">기본 AI</strong>
+                  <span class="model-tier-tag tier-standard" id="modelTierTag">Standard</span>
+                  <i class="fa-solid fa-chevron-down caret-icon"></i>
+                </div>
+                <span class="model-status-sub" id="modelStatusSub"><span class="dot"></span> 빠르고 스마트한 기본 AI</span>
+              </div>
+            </button>
+
+            <!-- 모델 선택 드롭다운 메뉴 -->
+            <div class="model-dropdown-menu" id="modelDropdownMenu" style="display: none;">
+              <div class="dropdown-header-title">AI 모델 선택</div>
+              
+              <button type="button" class="model-option-item is-selected" id="optModelFlash" data-model="flash">
+                <div class="opt-icon-box opt-standard"><i class="fa-solid fa-bolt"></i></div>
+                <div class="opt-text-box">
+                  <div class="opt-main-title">기본 AI <span class="opt-pill pill-standard">Standard</span></div>
+                  <div class="opt-sub-desc">빠르고 스마트한 전 회원 기본 제공 모델</div>
+                </div>
+                <i class="fa-solid fa-check opt-check-icon"></i>
+              </button>
+
+              <button type="button" class="model-option-item is-locked" id="optModelPro" data-model="pro">
+                <div class="opt-icon-box opt-pro"><i class="fa-solid fa-crown"></i></div>
+                <div class="opt-text-box">
+                  <div class="opt-main-title">PRO 엔진 <span class="opt-pill pill-pro">PRO 전용</span></div>
+                  <div class="opt-sub-desc">초고지능 심층 사고 & 멀티모달 창작 엔진</div>
+                </div>
+                <span class="opt-lock-badge" id="optProLockBadge"><i class="fa-solid fa-lock"></i> 관리자 승인 필요</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <!-- 상단 오른쪽 크레딧 잔여량 위젯 -->
+          <div class="credit-pill-widget" id="userCreditWidget" title="보유 AI 크레딧 (소진 시 AI 이용 제한)">
+            <i class="fa-solid fa-coins"></i>
+            <span class="credit-label">크레딧:</span>
+            <strong class="credit-number" id="userCreditDisplay">20</strong>
+            <span class="credit-unit">개</span>
+          </div>
+
+          <button id="btnNetworkInfoPill" class="btn-network-pill" title="스마트폰/다른 기기 접속 주소 보기">
+            <i class="fa-solid fa-mobile-screen-button"></i> <span>다른 기기 연결</span>
+          </button>
+          <a href="https://bookwave-server.onrender.com" target="_blank" class="btn-bw-pill" title="북웨이브 열기">
+            <i class="fa-solid fa-book-open-reader"></i> <span>북웨이브</span>
+          </a>
+          <a href="index.html" class="btn-home-pill" title="포털 홈으로">
+            <i class="fa-solid fa-arrow-left"></i> <span>포털 홈</span>
+          </a>
+          <button id="themeToggleBtn" class="icon-btn-round" title="테마 전환">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- 채팅 메시지 스크롤 영역 -->
+      <div class="chat-messages-container" id="chatMessagesContainer">
+        <!-- 첫 접속 시 환영 뷰 -->
+        <div class="chat-welcome-view" id="welcomeView">
+          <div class="welcome-logo-box">
+            <div class="welcome-icon">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h1>초고지능 멀티모달 창작, <span>nunu AI Pro</span></h1>
+            <p>언어(대화·번역·글짓기), 고화질 이미지, 감미로운 음악, 시네마틱 동영상까지 무엇이든 만들어보세요!</p>
+          </div>
+
+          <div class="welcome-prompt-grid">
+            <div class="welcome-card" data-prompt="가을 저녁의 쓸쓸함과 따스함을 노래하는 서정적인 시 한 편과 영어/일본어 번역문 작성해줘">
+              <div class="card-icon" style="background: rgba(79, 70, 229, 0.15); color: #4f46e5;">
+                <i class="fa-solid fa-language"></i>
+              </div>
+              <div class="card-text">
+                <strong>언어 & 글짓기 · 번역</strong>
+                <span>시/스토리 창작, 다국어 실시간 번역, 문서 요약</span>
+              </div>
+            </div>
+
+            <div class="welcome-card" data-prompt="사이버펑크 네온사인이 반짝이는 비 오는 미래 도시의 고화질 이미지 그려줘">
+              <div class="card-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+                <i class="fa-solid fa-image"></i>
+              </div>
+              <div class="card-text">
+                <strong>AI 이미지 생성</strong>
+                <span>상상 속 장면을 고해상도 그림 및 아트워크로 생성</span>
+              </div>
+            </div>
+
+            <div class="welcome-card" data-prompt="비 오는 날 카페에서 듣기 좋은 감미로운 재즈 피아노 음악 하나 작곡해줘">
+              <div class="card-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <i class="fa-solid fa-music"></i>
+              </div>
+              <div class="card-text">
+                <strong>AI 음악 작곡 & 플레이어</strong>
+                <span>분위기별 멜로디와 사운드를 즉시 생성하고 감상</span>
+              </div>
+            </div>
+
+            <div class="welcome-card" data-prompt="우주 성운 사이를 가로질러 비행하는 우주선 시네마틱 4K 동영상 클립 만들어줘">
+              <div class="card-icon" style="background: rgba(14, 165, 233, 0.15); color: #0284c7;">
+                <i class="fa-solid fa-video"></i>
+              </div>
+              <div class="card-text">
+                <strong>AI 동영상 제작</strong>
+                <span>시네마틱 모션 클립과 역동적인 영상 장면 생성</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 메시지 리스트 -->
+        <div class="messages-flow" id="messagesFlow">
+          <!-- JS 동적 생성 -->
+        </div>
+
+        <!-- AI 답변 생성 중 인디케이터 -->
+        <div class="ai-typing-indicator" id="aiTypingIndicator" style="display: none;">
+          <div class="typing-avatar"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div class="typing-bubbles">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 메시지 입력 바 -->
+      <footer class="chat-input-area">
+        <!-- 멀티모달 창작 모드 선택 바 -->
+        <div class="multimodal-mode-bar" id="aiModeBar">
+          <button class="mode-tab-btn active" data-mode="all">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> <span>통합 대화</span>
+          </button>
+          <button class="mode-tab-btn" data-mode="language">
+            <i class="fa-solid fa-language"></i> <span>언어 · 번역 · 작문</span>
+          </button>
+          <button class="mode-tab-btn" data-mode="image">
+            <i class="fa-solid fa-image"></i> <span>이미지 생성</span>
+          </button>
+          <button class="mode-tab-btn" data-mode="music">
+            <i class="fa-solid fa-music"></i> <span>음악 작곡</span>
+          </button>
+          <button class="mode-tab-btn" data-mode="video">
+            <i class="fa-solid fa-video"></i> <span>동영상 제작</span>
+          </button>
+        </div>
+
+        <div class="quick-chips-scroll">
+          <button class="chip-item" data-prompt="📚 북웨이브 오디오북 어떻게 써?">북웨이브 사용법</button>
+          <button class="chip-item" data-prompt="📖 가을에 읽기 좋은 추천 도서 3권 알려줘">가을 추천 도서</button>
+          <button class="chip-item" data-prompt="⚡ 최신 생성형 AI 트렌드 설명해줘">AI 트렌드</button>
+          <button class="chip-item" data-prompt="💻 자바스크립트 비동기(async/await) 쉽게 설명해줘">JS 비동기 설명</button>
+          <button class="chip-item" data-prompt="🍎 환절기 건강 관리 팁 알려줘">건강 관리 팁</button>
+        </div>
+
+        <div class="chat-input-box">
+          <textarea id="aiMessageInput" placeholder="nunu AI에게 메시지를 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)" rows="1"></textarea>
+          <div class="input-actions">
+            <button id="voiceInputBtn" class="action-btn" title="음성 입력"><i class="fa-solid fa-microphone"></i></button>
+            <button id="sendMessageBtn" class="action-btn send-btn" title="메시지 전송"><i class="fa-solid fa-arrow-up"></i></button>
+          </div>
+        </div>
+        <p class="input-disclaimer">nunu AI는 실수할 수 있습니다. 중요한 정보는 검토하시기 바랍니다.</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- 로그인 / 회원가입 통합 모달 (다른 기기 및 AI 채팅방 직접 로그인용) -->
+  <div class="custom-modal" id="aiAuthModal" style="display: none;">
+    <div class="modal-card auth-modal-box">
+      <div class="modal-card-header">
+        <div class="modal-title-left">
+          <i class="fa-solid fa-lock modal-header-icon" style="color: #6366f1;"></i>
+          <div>
+            <h4 id="authModalTitle">🔒 nunu AI 로그인 (필수)</h4>
+            <span class="modal-sub">nunu AI는 회원 전용 서비스입니다. 로그인 또는 회원가입 후 이용하세요.</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeAuthModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabBtnLogin">로그인</button>
+        <button class="auth-tab-btn" id="tabBtnSignup">회원가입</button>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <form class="auth-form" id="aiLoginForm" onsubmit="return false;">
+        <div class="form-field">
+          <label for="aiLoginId">아이디 또는 이메일</label>
+          <input type="text" id="aiLoginId" placeholder="아이디 입력" autocomplete="username">
+        </div>
+        <div class="form-field">
+          <label for="aiLoginPw">비밀번호</label>
+          <input type="password" id="aiLoginPw" placeholder="비밀번호 입력" autocomplete="current-password">
+        </div>
+        <div class="auth-error-alert" id="aiLoginError" style="display: none;"></div>
+        <button type="submit" id="btnSubmitAiLogin" class="btn-primary-block">로그인 및 대화 동기화</button>
+      </form>
+
+      <!-- 회원가입 폼 -->
+      <form class="auth-form" id="aiSignupForm" style="display: none;" onsubmit="return false;">
+        <div class="form-field">
+          <label for="aiSignupId">아이디 (3자 이상)</label>
+          <input type="text" id="aiSignupId" placeholder="아이디 입력" autocomplete="username">
+        </div>
+        <div class="form-field">
+          <label for="aiSignupName">이름 / 닉네임</label>
+          <input type="text" id="aiSignupName" placeholder="표시될 이름">
+        </div>
+        <div class="form-field">
+          <label for="aiSignupEmail">이메일</label>
+          <input type="email" id="aiSignupEmail" placeholder="example@nunu.com">
+        </div>
+        <div class="form-field">
+          <label for="aiSignupPw">비밀번호 (4자 이상)</label>
+          <input type="password" id="aiSignupPw" placeholder="비밀번호 입력" autocomplete="new-password">
+        </div>
+        <div class="auth-error-alert" id="aiSignupError" style="display: none;"></div>
+        <div class="auth-success-alert" id="aiSignupSuccess" style="display: none;"></div>
+        <button type="submit" id="btnSubmitAiSignup" class="btn-primary-block">회원가입 완료</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 스마트폰 / 다른 기기 접속 안내 모달 -->
+  <div class="custom-modal" id="networkModal" style="display: none;">
+    <div class="modal-card network-modal-box">
+      <div class="modal-card-header">
+        <div class="modal-title-left">
+          <i class="fa-solid fa-mobile-screen-button modal-header-icon" style="color: #4f46e5;"></i>
+          <div>
+            <h4>스마트폰 & 외부 기기 연결</h4>
+            <span class="modal-sub">같은 Wi-Fi가 아니어도 외부 데이터(LTE/5G)로 접속할 수 있습니다.</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeNetworkModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="network-body">
+        <!-- 1순위: 외부 어디서나 접속 가능한 공용 주소 (같은 Wi-Fi 아니어도 됨) -->
+        <div class="device-step-box" style="background: rgba(79, 70, 229, 0.06); padding: 14px; border-radius: 10px; border: 1px solid rgba(79, 70, 229, 0.25);">
+          <div class="step-num" style="background: #4f46e5;"><i class="fa-solid fa-globe"></i></div>
+          <div class="step-desc" style="width: 100%;">
+            <strong style="color: #4f46e5; font-size: 14px;">🌐 전 세계 어디서나 / LTE 데이터 접속 (같은 Wi-Fi 아니어도 접속 가능!)</strong>
+            <p>스마트폰의 LTE/5G 데이터나 외부 어디서든 주소창에 아래 주소를 입력하면 즉시 접속됩니다:</p>
+            <div class="network-url-copy-box" style="margin-top: 8px;">
+              <span id="publicTunnelUrlText" style="font-size: 13px; font-weight: 700; color: #4f46e5; word-break: break-all;">https://worker-temporary-soundtrack-flights.trycloudflare.com</span>
+              <button id="btnCopyPublicUrl" class="btn-copy-tag" title="주소 복사"><i class="fa-regular fa-copy"></i> 복사</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="device-step-box">
+          <div class="step-num">2</div>
+          <div class="step-desc">
+            <strong>🏠 같은 집/사무실 Wi-Fi 고속 접속 주소</strong>
+            <p>같은 Wi-Fi 공유기에 연결되어 있을 때는 아래 주소로도 빠르게 접속할 수 있습니다:</p>
+            <div class="network-url-copy-box">
+              <span id="networkIpAddressText">http://192.168.0.3:8080</span>
+              <button id="btnCopyNetworkUrl" class="btn-copy-tag" title="주소 복사"><i class="fa-regular fa-copy"></i> 복사</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="device-step-box">
+          <div class="step-num">3</div>
+          <div class="step-desc">
+            <strong>로그인하면 대화가 실시간 동기화</strong>
+            <p>스마트폰에서 로그인하시면 PC에서 나눈 AI 대화가 그대로 이어지며, 폰에서 대화한 내용도 PC에 자동 저장됩니다!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 확대/라이트박스 모달 -->
+  <div class="custom-modal image-lightbox-modal" id="imageLightboxModal" style="display: none;">
+    <div class="lightbox-content">
+      <button class="lightbox-close-btn" id="closeLightboxBtn"><i class="fa-solid fa-xmark"></i></button>
+      <div class="lightbox-img-wrapper">
+        <img id="lightboxImg" src="" alt="확대된 AI 생성 이미지">
+      </div>
+      <div class="lightbox-meta">
+        <div class="lightbox-title-area">
+          <span class="lightbox-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> nunu AI Pro 고화질 이미지</span>
+          <p id="lightboxPromptText"></p>
+        </div>
+        <a id="lightboxDownloadBtn" href="#" download="nunu-ai-image.png" class="btn-lightbox-download">
+          <i class="fa-solid fa-download"></i> 원본 고화질 다운로드
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="netlify-api-bridge.js"></script>
+  <script src="ai.js?v=20261022_netlify"></script>
+</body>
+</html>

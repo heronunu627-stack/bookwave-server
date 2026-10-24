@@ -1,0 +1,25 @@
+services:
+  # 1. nunu 사용자 포털 웹 서비스 (Python 24시간 풀 백엔드)
+  - type: web
+    name: nunu-portal
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python server.py"
+    envVars:
+      - key: PORT
+        value: 10000
+
+  # 2. nunu 관리자 콘솔 웹 서비스 (독립 관리자 대시보드)
+  - type: web
+    name: nunu-admin
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: nunu-admin
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python server.py"
+    envVars:
+      - key: PORT
+        value: 10000
